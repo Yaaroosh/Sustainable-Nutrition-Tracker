@@ -13,5 +13,6 @@ data class Meal(
     val protein: Int,
     val mealType: String,
     val imagePath: String? = null,
-    val rating: Int = 0
+    val rating: Int = 0,
+    val date: Long = System.currentTimeMillis(),
 )
