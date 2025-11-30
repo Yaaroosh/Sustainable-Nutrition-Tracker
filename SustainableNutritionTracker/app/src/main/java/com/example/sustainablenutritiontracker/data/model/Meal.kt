@@ -23,6 +23,11 @@ data class Meal(
             "Titel darf nicht leer sein."
         }
 
+        val allowedMealTypes = listOf("breakfast", "lunch", "dinner", "snack")
+            require(mealType in allowedMealTypes) {
+                "Ungültiger Meal-Typ. Erlaubt: $allowedMealTypes"
+            }
+
         require(calories > 0) {
             "Kalorien müssen > 0 sein."
         }
