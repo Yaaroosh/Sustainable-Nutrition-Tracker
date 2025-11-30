@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.sustainablenutritiontracker.ui.home.HomeScreen
+import com.example.sustainablenutritiontracker.ui.meal.MealListScreen
 
 @Composable
 fun AppNavigation() {
@@ -15,7 +16,6 @@ fun AppNavigation() {
         startDestination = "home"
     ) {
         composable("home") { HomeScreen() }
-
-        // TODO: Add more screens for meals, stats, etc.
+        composable("mealList") { MealListScreen() }
     }
 }
