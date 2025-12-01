@@ -10,7 +10,7 @@ class MealRepository(
     // --- Main APIs used by the new MealListViewModel ---
     fun getMealsSortedByDate(): Flow<List<Meal>> = mealDao.getAllMeals()
 
-    suspend fun addMeal(meal: Meal) {
+    suspend fun insertMeal(meal: Meal) {
         mealDao.insertMeal(meal)
     }
 
