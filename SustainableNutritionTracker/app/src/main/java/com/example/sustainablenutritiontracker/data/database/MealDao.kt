@@ -3,16 +3,20 @@ package com.example.sustainablenutritiontracker.data.database
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.sustainablenutritiontracker.data.model.Meal
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MealDao {
-    @Insert
-    suspend fun insertMeal(meal: Meal){
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMeal(meal: Meal)
 
-    }
+    @Update
+    suspend fun updateMeal(meal: Meal)
+
 
     @Delete
     suspend fun deleteMeal(meal: Meal)
@@ -27,11 +31,19 @@ interface MealDao {
     fun getAllMealsByRating(): Flow<List<Meal>>
 
     //Sort by meal typ and date
-    @Query("SELECT * FROM meals ORDER BY mealType ASC,date DESC")
-    fun getAllMealsByTyp(): Flow<List<Meal>>
+    @Query("""SELECT * FROM meals ORDER BY 
+        CASE mealType
+            WHEN 'breakfast' THEN 1
+            WHEN 'lunch' THEN 2
+            WHEN 'dinner' THEN 3
+            WHEN 'snack' THEN 4
+        END,
+        date DESC""")
+    fun getAllMealsByType(): Flow<List<Meal>>
+
 
 //Sort by calories
-    @Query("SELECT * FROM meals ORDER BY calories ASC")
+    @Query("SELECT * FROM meals ORDER BY calories ASC, date DESC")
     fun getAllMealsByCalories(): Flow<List<Meal>>
 
 

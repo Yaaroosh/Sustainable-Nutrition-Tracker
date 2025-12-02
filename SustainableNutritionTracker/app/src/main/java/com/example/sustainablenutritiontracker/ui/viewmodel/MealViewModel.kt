@@ -24,19 +24,25 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
     }
 
     // Load meals based on current sort type
-    fun loadMeals(sortType: SortType = _sortType.value) {
+    fun loadMeals(sort: SortType = _sortType.value) {
+        _sortType.value = sort
+
         viewModelScope.launch {
-            _sortType.value = sortType
-            when (sortType) {
-                SortType.DATE -> repository.getAllMeals()
-                SortType.RATING -> repository.getAllMealsByRating()
-                SortType.TYPE -> repository.getAllMealsByType()
-                SortType.CALORIES -> repository.getAllMealsByCalories()
-            }.collect { mealList ->
-                _meals.value = mealList
+            repository.getMeals().collect { list ->
+
+                val sorted = when (sort) {
+                    SortType.DATE -> list.sortedByDescending { it.date }
+                    SortType.RATING -> list.sortedByDescending { it.rating }
+                    SortType.TYPE -> list.sortedBy { it.mealType }
+                    SortType.CALORIES -> list.sortedByDescending { it.calories }
+                }
+
+                _meals.value = sorted
             }
         }
     }
+
+
 
     // Add a new meal
     fun addMeal(meal: Meal) {
@@ -63,4 +69,6 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
     enum class SortType {
         DATE, RATING, TYPE, CALORIES
     }
+
+
 }

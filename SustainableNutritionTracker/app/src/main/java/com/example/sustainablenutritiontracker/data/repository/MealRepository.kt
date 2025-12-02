@@ -10,11 +10,13 @@ class MealRepository(
     // --- Main APIs used by the new MealListViewModel ---
     fun getMealsSortedByDate(): Flow<List<Meal>> = mealDao.getAllMeals()
 
-    suspend fun addMeal(meal: Meal) {
+    //add Meal
+    suspend fun insertMeal(meal: Meal) {
         mealDao.insertMeal(meal)
     }
 
     // --- Existing APIs already in the project ---
+    fun getMeals(): Flow<List<Meal>> = mealDao.getAllMeals()
 
     // Get all meals sorted by date (alias of getMealsSortedByDate for compatibility)
     fun getAllMeals(): Flow<List<Meal>> = mealDao.getAllMeals()
@@ -23,7 +25,7 @@ class MealRepository(
     fun getAllMealsByRating(): Flow<List<Meal>> = mealDao.getAllMealsByRating()
 
     // Get all meals sorted by type
-    fun getAllMealsByType(): Flow<List<Meal>> = mealDao.getAllMealsByTyp()
+    fun getAllMealsByType(): Flow<List<Meal>> = mealDao.getAllMealsByType()
 
     // Get all meals sorted by calories
     fun getAllMealsByCalories(): Flow<List<Meal>> = mealDao.getAllMealsByCalories()
@@ -37,4 +39,6 @@ class MealRepository(
     suspend fun deleteAllMeals() {
         mealDao.deleteAllMeals()
     }
+
+
 }
