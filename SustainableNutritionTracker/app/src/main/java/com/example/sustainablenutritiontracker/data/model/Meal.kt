@@ -18,15 +18,22 @@ data class Meal(
 ) {
 
     init {
+
+        // DEBUG LOGGING - ADD THIS AT THE VERY TOP OF init { }
+        android.util.Log.d(
+            "MealDebug",
+            "Meal created -> calories=$calories, carbs=$carbs, fat=$fat, protein=$protein, macroCalories=${carbs*4 + protein*4 + fat*9}"
+        )
+
         // --- Basisvalidierung ---
         require(title.isNotBlank()) {
             "Titel darf nicht leer sein."
         }
 
         val allowedMealTypes = listOf("breakfast", "lunch", "dinner", "snack")
-            require(mealType in allowedMealTypes) {
-                "Ungültiger Meal-Typ. Erlaubt: $allowedMealTypes"
-            }
+        require(mealType in allowedMealTypes) {
+            "Ungültiger Meal-Typ. Erlaubt: $allowedMealTypes"
+        }
 
         require(calories > 0) {
             "Kalorien müssen > 0 sein."
