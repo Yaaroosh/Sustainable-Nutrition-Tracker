@@ -1,36 +1,45 @@
 package com.example.sustainablenutritiontracker.ui.meal
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons              // ADDED
-import androidx.compose.material.icons.filled.Star      // ADDED
-import androidx.compose.material.icons.outlined.StarBorder // ADDED
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment                    // ADDED (for align)
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.text.KeyboardOptions // ADDED
-import androidx.compose.ui.text.input.KeyboardType      // ADDED
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModel
-import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMealScreen(
     viewModel: MealViewModel,
-    onSave: () -> Unit          // caller handles navigation
+    onSave: () -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
-    var carbs by remember { mutableStateOf("") }      // kept for future use
+    var carbs by remember { mutableStateOf("") }
     var fat by remember { mutableStateOf("") }
     var protein by remember { mutableStateOf("") }
     var rating by remember { mutableStateOf(0) }
+
     val mealTypes = listOf("breakfast", "lunch", "dinner", "snack")
     var mealType by remember { mutableStateOf(mealTypes.first()) }
     var expanded by remember { mutableStateOf(false) }
-    var showMacroError by remember { mutableStateOf(false) } // NEW: state to show/hide macro error dialog
+
+    // ---- Validation error states ----
+    var titleError by remember { mutableStateOf<String?>(null) }
+    var caloriesError by remember { mutableStateOf<String?>(null) }
+    var carbsError by remember { mutableStateOf<String?>(null) }
+    var fatError by remember { mutableStateOf<String?>(null) }
+    var proteinError by remember { mutableStateOf<String?>(null) }
+    var showMacroError by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -45,45 +54,94 @@ fun AddMealScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            // ---- Title ----
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = {
+                    title = it
+                    titleError = null
+                },
                 label = { Text("Meal title") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = titleError != null,
+                supportingText = {
+                    titleError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                }
             )
 
+            // ---- Calories ----
             OutlinedTextField(
                 value = calories,
-                onValueChange = { calories = it.filter { ch -> ch.isDigit() } },
+                onValueChange = {
+                    calories = it.filter { ch -> ch.isDigit() }
+                    caloriesError = null
+                },
                 label = { Text("Calories") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = caloriesError != null,
+                supportingText = {
+                    caloriesError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                }
             )
-            // 🔹 Carbs input
+
+            // ---- Carbs ----
             OutlinedTextField(
                 value = carbs,
-                onValueChange = { carbs = it.filter { ch -> ch.isDigit() } },
+                onValueChange = {
+                    carbs = it.filter { ch -> ch.isDigit() || ch == '-' }
+                    carbsError = null
+                },
                 label = { Text("Carbs (g)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = carbsError != null,
+                supportingText = {
+                    carbsError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                }
             )
 
-            // Fat input
+            // ---- Fat ----
             OutlinedTextField(
                 value = fat,
-                onValueChange = { fat = it.filter { ch -> ch.isDigit() } },
+                onValueChange = {
+                    fat = it.filter { ch -> ch.isDigit() || ch == '-' }
+                    fatError = null
+                },
                 label = { Text("Fat (g)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = fatError != null,
+                supportingText = {
+                    fatError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                }
             )
 
-            // Protein input
+            // ---- Protein ----
             OutlinedTextField(
                 value = protein,
-                onValueChange = { protein = it.filter { ch -> ch.isDigit() } },
+                onValueChange = {
+                    protein = it.filter { ch -> ch.isDigit() || ch == '-' }
+                    proteinError = null
+                },
                 label = { Text("Protein (g)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = proteinError != null,
+                supportingText = {
+                    proteinError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                }
             )
 
             // ---- Meal Type Dropdown ----
@@ -121,7 +179,7 @@ fun AddMealScreen(
             }
 
             // ---- Rating ----
-            Text(text = "Rating", style = MaterialTheme.typography.titleMedium)
+            Text("Rating", style = MaterialTheme.typography.titleMedium)
             RatingBar(
                 rating = rating,
                 onRatingSelected = { rating = it }
@@ -132,10 +190,39 @@ fun AddMealScreen(
             // ---- Save Button ----
             Button(
                 onClick = {
-                    val caloriesInt = calories.toIntOrNull() ?: 0
+                    var hasError = false
+
+                    if (title.isBlank()) {
+                        titleError = "Meal title is required"
+                        hasError = true
+                    }
+
+                    val caloriesInt = calories.toIntOrNull()
+                    if (caloriesInt == null || caloriesInt <= 0) {
+                        caloriesError = "Calories must be greater than 0"
+                        hasError = true
+                    }
+
                     val carbsInt = carbs.toIntOrNull() ?: 0
                     val fatInt = fat.toIntOrNull() ?: 0
                     val proteinInt = protein.toIntOrNull() ?: 0
+
+                    if (carbsInt < 0) {
+                        carbsError = "Carbs dürfen nicht negativ sein."
+                        hasError = true
+                    }
+
+                    if (fatInt < 0) {
+                        fatError = "Fat darf nicht negativ sein."
+                        hasError = true
+                    }
+
+                    if (proteinInt < 0) {
+                        proteinError = "Protein darf nicht negativ sein."
+                        hasError = true
+                    }
+
+                    if (hasError) return@Button
 
                     try {
                         val meal = Meal(
@@ -147,10 +234,12 @@ fun AddMealScreen(
                             mealType = mealType,
                             rating = rating
                         )
+
                         Log.d(
                             "MealDebug",
                             "Creating Meal -> calories=$caloriesInt, carbs=$carbsInt, fat=$fatInt, protein=$proteinInt"
                         )
+
                         viewModel.addMeal(meal)
                         onSave()
 
@@ -165,7 +254,7 @@ fun AddMealScreen(
                 Text("Save meal")
             }
 
-            // ---- Alert Dialog (macro error) ----
+            // ---- Macro Error Dialog (fallback) ----
             if (showMacroError) {
                 AlertDialog(
                     onDismissRequest = { showMacroError = false },
