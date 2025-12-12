@@ -16,6 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sustainablenutritiontracker.data.model.Meal
+import androidx.compose.ui.text.input.ImeAction // ADDED
+import androidx.compose.foundation.text.KeyboardOptions // ADDED
+import androidx.compose.material.icons.filled.Search // ADDED
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +32,29 @@ fun MealListScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text("Meals") })
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CenterAlignedTopAppBar(
+                    title = { Text("Meals") }
+                )
+
+                // ADDED: search bar
+                val query by viewModel.searchQuery.collectAsState()
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { viewModel.updateSearchQuery(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    singleLine = true,
+                    placeholder = { Text("Search meals (title or type)") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = "Search")
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search)
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onNavigateToAdd) {
@@ -95,8 +120,17 @@ fun MealListItem(
                     text = "${meal.calories} kcal • ${meal.mealType}",
                     style = MaterialTheme.typography.bodyMedium
                 )
-            }
 
+            // ADDED: show rating if present (0–5)
+            if (meal.rating > 0) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Rating: ${meal.rating}/5",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
             IconButton(onClick = onDeleteClicked) {
                 Icon(
                     imageVector = Icons.Default.Delete,
