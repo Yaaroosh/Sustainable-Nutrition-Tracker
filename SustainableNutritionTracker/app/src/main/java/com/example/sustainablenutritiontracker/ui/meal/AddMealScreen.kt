@@ -27,6 +27,7 @@ fun AddMealScreen(
     var fat by remember { mutableStateOf("") }
     var protein by remember { mutableStateOf("") }
     var rating by remember { mutableStateOf(0) }
+    var environmentalScore by remember { mutableStateOf(0) }
     val mealTypes = listOf("breakfast", "lunch", "dinner", "snack")
     var mealType by remember { mutableStateOf(mealTypes.first()) }
     var expanded by remember { mutableStateOf(false) }
@@ -145,7 +146,8 @@ fun AddMealScreen(
                             fat = fatInt,
                             protein = proteinInt,
                             mealType = mealType,
-                            rating = rating
+                            rating = rating,
+                            environmentalScore = environmentalScore
                         )
                         Log.d(
                             "MealDebug",

@@ -14,6 +14,7 @@ data class Meal(
     val mealType: String,
     val imagePath: String? = null,
     val rating: Int = 0,
+    val environmentalScore: Int = 0,
     val date: Long = System.currentTimeMillis(),
 ) {
 
