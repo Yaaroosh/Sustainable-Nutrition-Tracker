@@ -29,6 +29,9 @@ fun AddMealScreen(
     var rating by remember { mutableStateOf(0) }
     val mealTypes = listOf("breakfast", "lunch", "dinner", "snack")
     var mealType by remember { mutableStateOf(mealTypes.first()) }
+    var containsMeat by remember { mutableStateOf(false) }
+    var vegetarian by remember { mutableStateOf(false) }
+    var vegan by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     var showMacroError by remember { mutableStateOf(false) } // NEW: state to show/hide macro error dialog
     Scaffold(
@@ -126,6 +129,78 @@ fun AddMealScreen(
                 rating = rating,
                 onRatingSelected = { rating = it }
             )
+
+            // ---- Dietary Preferences ----
+            Text(
+                text = "Dietary Information",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Contains meat",
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = containsMeat,
+                        onCheckedChange = { checked ->
+                            containsMeat = checked
+                            if (checked) {
+                                vegetarian = false
+                                vegan = false
+                            }
+                        }
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Vegetarian",
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = vegetarian,
+                        onCheckedChange = { checked ->
+                            vegetarian = checked
+                            if (checked) {
+                                containsMeat = false
+                                vegan = false
+                            }
+                        }
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Vegan",
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = vegan,
+                        onCheckedChange = { checked ->
+                            vegan = checked
+                            if (checked) {
+                                vegetarian = true
+                                containsMeat = false
+                            }
+                        }
+                    )
+                }
+            }
+
+
+
 
             Spacer(modifier = Modifier.weight(1f))
 
