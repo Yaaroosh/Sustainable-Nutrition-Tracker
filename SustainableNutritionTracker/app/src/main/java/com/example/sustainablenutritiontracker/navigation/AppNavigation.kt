@@ -23,14 +23,15 @@ fun AppNavigation() {
 
     val repository = DatabaseProvider.provideRepository(context)
 
+    // ViewModel für LISTE + FILTER
     val mealListVM: MealListViewModel = viewModel(
         factory = MealListViewModelFactory(repository)
     )
 
+    //  ViewModel für ADD / WRITE
     val mealVM: MealViewModel = viewModel(
         factory = MealViewModelFactory(repository)
     )
-
 
     NavHost(
         navController = navController,
@@ -46,7 +47,7 @@ fun AppNavigation() {
 
         composable("list") {
             MealListScreen(
-                viewModel = mealListVM,
+                viewModel = mealListVM,   // ✅ RICHTIG
                 onNavigateToAdd = { navController.navigate("addMeal") }
             )
         }
@@ -59,3 +60,4 @@ fun AppNavigation() {
         }
     }
 }
+

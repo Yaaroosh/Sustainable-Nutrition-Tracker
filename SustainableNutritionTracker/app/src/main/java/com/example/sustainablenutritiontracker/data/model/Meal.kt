@@ -15,6 +15,8 @@ data class Meal(
     val imagePath: String? = null,
     val rating: Int = 0,
     val date: Long = System.currentTimeMillis(),
+    val containsMeat: Boolean,
+    val isVegan: Boolean,
 ) {
 
     init {

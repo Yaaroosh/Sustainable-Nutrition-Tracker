@@ -31,7 +31,10 @@ class MealRepository(
     fun getAllMealsByCalories(): Flow<List<Meal>> = mealDao.getAllMealsByCalories()
 
     // Search meals
-    fun searchMeals(query: String): Flow<List<Meal>> = mealDao.searchMeals(query)
+    fun searchMeals(query: String): Flow<List<Meal>> {
+        return mealDao.searchMeals(query)
+    }
+
     // Delete a meal
     suspend fun deleteMeal(meal: Meal) {
         mealDao.deleteMeal(meal)

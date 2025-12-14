@@ -16,9 +16,15 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
     private val _meals = MutableStateFlow<List<Meal>>(emptyList())
     val meals: StateFlow<List<Meal>> = _meals.asStateFlow()
 
-    // 🔍 search query state
+
+
+    // search query state
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    //filter state
+    private val _filterType = MutableStateFlow(FilterType.ALL)
+    val filterType: StateFlow<FilterType> = _filterType.asStateFlow()
 
     // Current sort type
     private val _sortType = MutableStateFlow(SortType.DATE)
@@ -28,16 +34,17 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
         observeMeals()      // ADDED — replaces loadMeals() as primary flow collector
     }
 
-    // ADDED — observe database changes + apply SORT + SEARCH together
+    // ADDED — observe database changes + apply SORT + SEARCH + FILTER together
     private fun observeMeals() {
         viewModelScope.launch {
             combine(
                 repository.getMeals(),   // DB flow
                 _sortType,
-                _searchQuery
-            ) { meals, sort, query ->
+                _searchQuery,
+                _filterType
+            ) { meals, sort, query, filter ->
 
-                // 1) SORTING (from loadMeals)
+                // 1) SORTING
                 val sorted = when (sort) {
                     SortType.DATE -> meals.sortedByDescending { it.date }
                     SortType.RATING -> meals.sortedByDescending { it.rating }
@@ -45,13 +52,25 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
                     SortType.CALORIES -> meals.sortedByDescending { it.calories }
                 }
 
-                // 2) SEARCH (NEW FEATURE)
-                val filtered = if (query.isBlank()) {
+                // 2) SEARCH
+                val searched = if (query.isBlank()) {
                     sorted
                 } else {
                     sorted.filter {
                         it.title.contains(query, ignoreCase = true) ||
                                 it.mealType.contains(query, ignoreCase = true)
+                    }
+                }
+
+                // FILTER
+                val filtered = searched.filter { meal ->
+                    when (filter) {
+                        FilterType.ALL -> true
+                        FilterType.VEGETARIAN -> !meal.containsMeat
+                        FilterType.VEGAN -> meal.isVegan
+                        FilterType.MEAT -> meal.containsMeat
+                        FilterType.LOW_CALORIES -> meal.calories < 500
+                        FilterType.HIGH_PROTEIN -> meal.protein >= 20
                     }
                 }
 
@@ -67,15 +86,15 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
         _searchQuery.value = newQuery
     }
 
+    // ADDED — called from Filter UI
+    fun updateFilter(newFilter: FilterType) {
+        _filterType.value = newFilter
+    }
 
     // Load meals based on current sort type
     fun loadMeals(sort: SortType = _sortType.value) {
         _sortType.value = sort
-
-        // collection of db MOVED to observeMeals
     }
-
-
 
     // Add a new meal
     fun addMeal(meal: Meal) {
@@ -102,6 +121,4 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
     enum class SortType {
         DATE, RATING, TYPE, CALORIES
     }
-
-
 }

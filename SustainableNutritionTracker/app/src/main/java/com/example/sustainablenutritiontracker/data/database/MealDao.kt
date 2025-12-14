@@ -47,13 +47,12 @@ interface MealDao {
     fun getAllMealsByCalories(): Flow<List<Meal>>
 
     @Query("""
-        SELECT * FROM meals
-        WHERE title LIKE '%' || :query || '%'
-           OR mealType LIKE '%' || :query || '%'
-        ORDER BY date DESC
-    """)
+    SELECT * FROM meals
+    WHERE title LIKE '%' || :query || '%'
+       OR mealType LIKE '%' || :query || '%'
+    ORDER BY date DESC
+""")
     fun searchMeals(query: String): Flow<List<Meal>>
-
 
 
 
