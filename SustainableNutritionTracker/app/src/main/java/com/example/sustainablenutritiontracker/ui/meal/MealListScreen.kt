@@ -130,6 +130,14 @@ fun MealListItem(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
+                if (meal.environmentalScore > 0) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Eco Score: ${meal.environmentalScore} CO2",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
         }
             IconButton(onClick = onDeleteClicked) {
                 Icon(
