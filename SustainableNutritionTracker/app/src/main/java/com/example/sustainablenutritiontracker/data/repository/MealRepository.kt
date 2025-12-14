@@ -2,10 +2,10 @@ package com.example.sustainablenutritiontracker.data.repository
 
 import com.example.sustainablenutritiontracker.data.database.MealDao
 import com.example.sustainablenutritiontracker.data.model.Meal
-import kotlinx.coroutines.flow.Flow
 import com.example.sustainablenutritiontracker.data.model.NutritionTotals
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-
+import java.time.LocalDate
 
 class MealRepository(
     private val mealDao: MealDao
@@ -13,7 +13,7 @@ class MealRepository(
     // --- Main APIs used by the new MealListViewModel ---
     fun getMealsSortedByDate(): Flow<List<Meal>> = mealDao.getAllMeals()
 
-    //add Meal
+    // Add a meal
     suspend fun insertMeal(meal: Meal) {
         mealDao.insertMeal(meal)
     }
@@ -35,6 +35,7 @@ class MealRepository(
 
     // Search meals
     fun searchMeals(query: String): Flow<List<Meal>> = mealDao.searchMeals(query)
+
     // Delete a meal
     suspend fun deleteMeal(meal: Meal) {
         mealDao.deleteMeal(meal)
@@ -45,17 +46,17 @@ class MealRepository(
         mealDao.deleteAllMeals()
     }
 
+    // --- NEW: Daily nutrition totals (only today's meals) ---
     fun getDailyNutritionTotals(): Flow<NutritionTotals> {
-    return mealDao.getAllMeals().map { meals ->
-        NutritionTotals(
-            calories = meals.sumOf { it.calories },
-            protein  = meals.sumOf { it.protein },
-            carbs    = meals.sumOf { it.carbs },
-            fat      = meals.sumOf { it.fat }
+        val today = LocalDate.now()
+        return mealDao.getAllMeals().map { meals ->
+            val todaysMeals = meals.filter { it.date.toLocalDate() == today }
+            NutritionTotals(
+                calories = todaysMeals.sumOf { it.calories },
+                protein  = todaysMeals.sumOf { it.protein },
+                carbs    = todaysMeals.sumOf { it.carbs },
+                fat      = todaysMeals.sumOf { it.fat }
             )
         }
     }
-
-
-
 }
