@@ -3,7 +3,7 @@ package com.example.sustainablenutritiontracker.ui.meal
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons              // ADDED
 import androidx.compose.material.icons.filled.Star      // ADDED
-import androidx.compose.material.icons.outlined.StarBorder // ADDED
+import androidx.compose.material.icons.outlined.Star    // ADDED
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment                    // ADDED (for align)
@@ -21,16 +21,28 @@ fun AddMealScreen(
     viewModel: MealViewModel,
     onSave: () -> Unit          // caller handles navigation
 ) {
+    // ---- Text field states ----
     var title by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
     var carbs by remember { mutableStateOf("") }      // kept for future use
     var fat by remember { mutableStateOf("") }
     var protein by remember { mutableStateOf("") }
-    var rating by remember { mutableStateOf(0) }
+
+    // ---- Rating ----
+    var rating by remember { mutableIntStateOf(0) }
+
+    // ---- Meal type dropdown ----
     val mealTypes = listOf("breakfast", "lunch", "dinner", "snack")
     var mealType by remember { mutableStateOf(mealTypes.first()) }
     var expanded by remember { mutableStateOf(false) }
-    var showMacroError by remember { mutableStateOf(false) } // NEW: state to show/hide macro error dialog
+
+    // ---- Dietary flags (IMPORTANT for filter) ----
+    var isVegan by remember { mutableStateOf(false) }
+    var containsMeat by remember { mutableStateOf(false) }
+
+    // ---- Error dialog ----
+    var showMacroError by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -45,6 +57,8 @@ fun AddMealScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            // ---- Title ----
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -52,6 +66,7 @@ fun AddMealScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // ---- Calories ----
             OutlinedTextField(
                 value = calories,
                 onValueChange = { calories = it.filter { ch -> ch.isDigit() } },
@@ -59,7 +74,8 @@ fun AddMealScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
-            // 🔹 Carbs input
+
+            // ---- Carbs ----
             OutlinedTextField(
                 value = carbs,
                 onValueChange = { carbs = it.filter { ch -> ch.isDigit() } },
@@ -68,7 +84,7 @@ fun AddMealScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Fat input
+            // ---- Fat ----
             OutlinedTextField(
                 value = fat,
                 onValueChange = { fat = it.filter { ch -> ch.isDigit() } },
@@ -77,7 +93,7 @@ fun AddMealScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Protein input
+            // ---- Protein ----
             OutlinedTextField(
                 value = protein,
                 onValueChange = { protein = it.filter { ch -> ch.isDigit() } },
@@ -127,6 +143,37 @@ fun AddMealScreen(
                 onRatingSelected = { rating = it }
             )
 
+            // ---- Dietary Options (FILTER BASIS) ----
+            Text(text = "Dietary options", style = MaterialTheme.typography.titleMedium)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Vegan", modifier = Modifier.weight(1f))
+                Switch(
+                    checked = isVegan,
+                    onCheckedChange = {
+                        isVegan = it
+                        if (it) containsMeat = false
+                    }
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Contains meat", modifier = Modifier.weight(1f))
+                Switch(
+                    checked = containsMeat,
+                    onCheckedChange = {
+                        containsMeat = it
+                        if (it) isVegan = false
+                    }
+                )
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             // ---- Save Button ----
@@ -145,12 +192,16 @@ fun AddMealScreen(
                             fat = fatInt,
                             protein = proteinInt,
                             mealType = mealType,
-                            rating = rating
+                            rating = rating,
+                            isVegan = isVegan,
+                            containsMeat = containsMeat
                         )
+
                         Log.d(
                             "MealDebug",
                             "Creating Meal -> calories=$caloriesInt, carbs=$carbsInt, fat=$fatInt, protein=$proteinInt"
                         )
+
                         viewModel.addMeal(meal)
                         onSave()
 
@@ -204,7 +255,7 @@ private fun RatingBar(
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Outlined.StarBorder,
+                        imageVector = Icons.Outlined.Star,
                         contentDescription = "Star $i"
                     )
                 }

@@ -4,49 +4,67 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.data.repository.MealRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
+import com.example.sustainablenutritiontracker.ui.viewmodel.FilterType
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.flatMapLatest
 
 class MealListViewModel(
     private val repository: MealRepository
 ) : ViewModel() {
-    // ADDED (assignment #19): query state
+
+    // 🔍 Search
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
-    // ADDED switch the meals flow based on query
+    // 🔎 Filter
+    private val _filterType = MutableStateFlow(FilterType.ALL)
+    val filterType: StateFlow<FilterType> = _filterType
+
+    // 📋 Meals (DB → Filter → UI)
     val meals: StateFlow<List<Meal>> =
-        _searchQuery
-            .flatMapLatest { query ->
-                if (query.isBlank()) {
-                    repository.getMealsSortedByDate()
-                } else {
-                    repository.searchMeals(query) // uses DAO query
+        combine(
+            repository.getMeals(),
+            _searchQuery,
+            _filterType
+        ) { meals, query, filter ->
+
+            meals
+                // SEARCH
+                .filter {
+                    query.isBlank() ||
+                            it.title.contains(query, true) ||
+                            it.mealType.contains(query, true)
                 }
-            }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
+                // FILTER
+                .filter { meal ->
+                    when (filter) {
+                        FilterType.ALL -> true
+                        FilterType.VEGETARIAN -> !meal.containsMeat
+                        FilterType.VEGAN -> meal.isVegan
+                        FilterType.MEAT -> meal.containsMeat
+                        FilterType.LOW_CALORIES -> meal.calories < 500
+                        FilterType.HIGH_PROTEIN -> meal.protein >= 20
+                    }
+                }
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            emptyList()
+        )
 
-    // ADDED called from UI
-    fun updateSearchQuery(newQuery: String) {
-        _searchQuery.value = newQuery
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
     }
 
+    fun updateFilter(filter: FilterType) {
+        _filterType.value = filter
+    }
 
-    fun deleteMeal(meal: Meal) = viewModelScope.launch(Dispatchers.IO) {
+    fun deleteMeal(meal: Meal) = viewModelScope.launch {
         repository.deleteMeal(meal)
-    }
-
-    fun deleteAllMeals() = viewModelScope.launch(Dispatchers.IO) {
-        repository.deleteAllMeals()
     }
 }

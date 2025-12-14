@@ -13,3 +13,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+//ok was ich noch finde das ist das ein zurück button fehlt und das jedes kalorien pro 100g eingibt und wie viel gram vom essen ist damit man rechnen kann wie viel calorien es ist

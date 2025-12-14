@@ -1,27 +1,25 @@
 package com.example.sustainablenutritiontracker.ui.home
 
-import android.os.Environment
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.Workspaces
 
 // 🎨 Violet palette
 private val VioletPrimary = Color(0xFF7C4DFF)
@@ -30,18 +28,17 @@ private val VioletCarbs = Color(0xFF9575CD)
 private val VioletProtein = Color(0xFF5E35B1)
 
 @OptIn(ExperimentalMaterial3Api::class) @Composable fun HomeScreen( onNavigateToList: () -> Unit, onNavigateToAdd: () -> Unit ) {
-    var caloriesTaken = 1200
-    var caloriesLimit = 2000
+    val caloriesTaken = 1200
+    val caloriesLimit = 2000
 
-    var carbsTaken = 150
-    var carbsLimit = 250
+    val carbsTaken = 150
+    val carbsLimit = 250
 
-    var fatTaken = 100
-    var fatLimit = 150
+    val fatTaken = 100
+    val fatLimit = 150
 
-    var proteinTaken = 90
-    var proteinLimit = 130
-
+    val proteinTaken = 90
+    val proteinLimit = 13
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -218,11 +215,11 @@ fun MacroCircle(
             modifier = Modifier
         ) {
             CircularProgressIndicator(
-                progress = progress.coerceIn(0f, 1f),
+                progress = { progress.coerceIn(0f, 1f) },
+                modifier = Modifier.size(92.dp),
                 color = color,
-                trackColor = color.copy(alpha = 0.2f),
                 strokeWidth = 6.dp,
-                modifier = Modifier.size(92.dp)
+                trackColor = color.copy(alpha = 0.2f),
             )
 
             Icon(
