@@ -3,6 +3,9 @@ package com.example.sustainablenutritiontracker.data.repository
 import com.example.sustainablenutritiontracker.data.database.MealDao
 import com.example.sustainablenutritiontracker.data.model.Meal
 import kotlinx.coroutines.flow.Flow
+import com.example.sustainablenutritiontracker.data.model.NutritionTotals
+import kotlinx.coroutines.flow.map
+
 
 class MealRepository(
     private val mealDao: MealDao
@@ -41,6 +44,18 @@ class MealRepository(
     suspend fun deleteAllMeals() {
         mealDao.deleteAllMeals()
     }
+
+    fun getDailyNutritionTotals(): Flow<NutritionTotals> {
+    return mealDao.getAllMeals().map { meals ->
+        NutritionTotals(
+            calories = meals.sumOf { it.calories },
+            protein  = meals.sumOf { it.protein },
+            carbs    = meals.sumOf { it.carbs },
+            fat      = meals.sumOf { it.fat }
+            )
+        }
+    }
+
 
 
 }
