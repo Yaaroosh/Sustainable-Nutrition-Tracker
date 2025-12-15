@@ -35,7 +35,7 @@ fun AddMealScreen(
     val mealTypes = listOf("breakfast", "lunch", "dinner", "snack")
     var mealType by remember { mutableStateOf(mealTypes.first()) }
     var expanded by remember { mutableStateOf(false) }
-
+    var environmentalScore by remember { mutableStateOf(0) }
     // ---- Dietary flags (IMPORTANT for filter) ----
     var isVegan by remember { mutableStateOf(false) }
     var containsMeat by remember { mutableStateOf(false) }
@@ -194,7 +194,8 @@ fun AddMealScreen(
                             mealType = mealType,
                             rating = rating,
                             isVegan = isVegan,
-                            containsMeat = containsMeat
+                            containsMeat = containsMeat ,
+                            environmentalScore = environmentalScore
                         )
 
                         Log.d(

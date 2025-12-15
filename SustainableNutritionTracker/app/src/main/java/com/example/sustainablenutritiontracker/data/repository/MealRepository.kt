@@ -1,8 +1,14 @@
 package com.example.sustainablenutritiontracker.data.repository
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.example.sustainablenutritiontracker.data.database.MealDao
 import com.example.sustainablenutritiontracker.data.model.Meal
+import com.example.sustainablenutritiontracker.data.model.NutritionTotals
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import com.example.sustainablenutritiontracker.data.model.toLocalDate
 
 class MealRepository(
     private val mealDao: MealDao
@@ -44,6 +50,22 @@ class MealRepository(
     suspend fun deleteAllMeals() {
         mealDao.deleteAllMeals()
     }
+    suspend fun updateMeal(meal: Meal) {
+        mealDao.updateMeal(meal)
+    }
 
-
+    // --- NEW: Daily nutrition totals (only today's meals) ---
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun getDailyNutritionTotals(): Flow<NutritionTotals> {
+        val today = LocalDate.now()
+        return mealDao.getAllMeals().map { meals ->
+            val todaysMeals = meals.filter { it.date.toLocalDate() == today }
+            NutritionTotals(
+                calories = todaysMeals.sumOf { it.calories },
+                protein  = todaysMeals.sumOf { it.protein },
+                carbs    = todaysMeals.sumOf { it.carbs },
+                fat      = todaysMeals.sumOf { it.fat }
+            )
+        }
+    }
 }

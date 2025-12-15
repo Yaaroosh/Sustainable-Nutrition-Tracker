@@ -18,6 +18,7 @@ data class Meal(
     val date: Long = System.currentTimeMillis(),
     val containsMeat: Boolean,
     val isVegan: Boolean,
+    val vegetarian: Boolean
 ) {
 
     init {

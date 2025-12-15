@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.sustainablenutritiontracker.data.database.DatabaseProvider
 import com.example.sustainablenutritiontracker.ui.home.HomeScreen
 import com.example.sustainablenutritiontracker.ui.meal.AddMealScreen
+import com.example.sustainablenutritiontracker.ui.meal.EditMealScreen
 import com.example.sustainablenutritiontracker.ui.meal.MealListScreen
 import com.example.sustainablenutritiontracker.ui.meal.MealListViewModel
 
@@ -47,14 +48,27 @@ fun AppNavigation() {
 
         composable("list") {
             MealListScreen(
-                viewModel = mealListVM,   // ✅ RICHTIG
-                onNavigateToAdd = { navController.navigate("addMeal") }
+                viewModel = mealListVM,
+                onNavigateToAdd = { navController.navigate("addMeal") },
+                onEditMeal = { id ->
+                    navController.navigate("editMeal/$id")
+                }
             )
         }
 
         composable("addMeal") {
             AddMealScreen(
                 viewModel = mealVM,
+                onSave = { navController.popBackStack() },
+
+            )
+        }
+
+        composable("editMeal/{mealId}") { backStackEntry ->
+            val mealId = backStackEntry.arguments?.getString("mealId")!!.toInt()
+            EditMealScreen(
+                mealId = mealId,
+                viewModel = mealListVM,
                 onSave = { navController.popBackStack() }
             )
         }
