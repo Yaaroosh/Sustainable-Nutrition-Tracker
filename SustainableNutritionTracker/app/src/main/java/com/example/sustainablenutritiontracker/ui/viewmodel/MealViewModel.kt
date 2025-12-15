@@ -1,15 +1,23 @@
 package com.example.sustainablenutritiontracker.ui.viewmodel
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sustainablenutritiontracker.data.model.Meal
+import com.example.sustainablenutritiontracker.data.model.NutritionTotals
 import com.example.sustainablenutritiontracker.data.repository.MealRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.example.sustainablenutritiontracker.data.model.toLocalDate
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 class MealViewModel(private val repository: MealRepository) : ViewModel() {
 
     // StateFlow for meals list
@@ -30,11 +38,22 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
     private val _sortType = MutableStateFlow(SortType.DATE)
     val sortType: StateFlow<SortType> = _sortType.asStateFlow()
 
+
+    // --- Daily nutrition totals (only today's meals) ---
+    val nutritionTotals: StateFlow<NutritionTotals> =
+        repository.getDailyNutritionTotals()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = NutritionTotals(0, 0, 0, 0)
+            )
+
     init {
         observeMeals()      // ADDED — replaces loadMeals() as primary flow collector
     }
 
     // ADDED — observe database changes + apply SORT + SEARCH + FILTER together
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun observeMeals() {
         viewModelScope.launch {
             combine(
@@ -44,12 +63,16 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
                 _filterType
             ) { meals, sort, query, filter ->
 
+
+
                 // 1) SORTING
+
+                val todayMeals = meals.filter { it.date.toLocalDate() == java.time.LocalDate.now() }
                 val sorted = when (sort) {
-                    SortType.DATE -> meals.sortedByDescending { it.date }
-                    SortType.RATING -> meals.sortedByDescending { it.rating }
-                    SortType.TYPE -> meals.sortedBy { it.mealType }
-                    SortType.CALORIES -> meals.sortedByDescending { it.calories }
+                    SortType.DATE -> todayMeals.sortedByDescending { it.date }
+                    SortType.RATING -> todayMeals.sortedByDescending { it.rating }
+                    SortType.TYPE -> todayMeals.sortedBy { it.mealType }
+                    SortType.CALORIES -> todayMeals.sortedByDescending { it.calories }
                 }
 
                 // 2) SEARCH
@@ -114,6 +137,12 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
     fun deleteAllMeals() {
         viewModelScope.launch {
             repository.deleteAllMeals()
+        }
+    }
+
+    fun editMeal(meal: Meal) {
+        viewModelScope.launch {
+            repository.updateMeal(meal)
         }
     }
 

@@ -1,46 +1,50 @@
 package com.example.sustainablenutritiontracker.ui.meal
 
+import android.util.Log
+import android.widget.RatingBar
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarBorder
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.ui.components.RatingBar
 import com.example.sustainablenutritiontracker.ui.components.SwitchRow
-import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModel
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddMealScreen(
-    viewModel: MealViewModel,
+fun EditMealScreen(
+    mealId: Int,
+    viewModel: MealListViewModel,
     onSave: () -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var calories by remember { mutableStateOf("") }
-    var carbs by remember { mutableStateOf("") }
-    var fat by remember { mutableStateOf("") }
-    var protein by remember { mutableStateOf("") }
-    var rating by remember { mutableIntStateOf(0) }
+    val meals by viewModel.meals.collectAsState()
+    val meal = meals.firstOrNull { it.id == mealId } ?: return
 
-    var isVegan by remember { mutableStateOf(false) }
-    var vegetarian by remember { mutableStateOf(false) }
-    var containsMeat by remember { mutableStateOf(false) }
+    // ---- States (prefilled) ----
+    var title by remember { mutableStateOf(meal.title) }
+    var calories by remember { mutableStateOf(meal.calories.toString()) }
+    var carbs by remember { mutableStateOf(meal.carbs.toString()) }
+    var fat by remember { mutableStateOf(meal.fat.toString()) }
+    var protein by remember { mutableStateOf(meal.protein.toString()) }
+    var rating by remember { mutableIntStateOf(meal.rating) }
+
+    var isVegan by remember { mutableStateOf(meal.isVegan) }
+    var vegetarian by remember { mutableStateOf(meal.vegetarian) }
+    var containsMeat by remember { mutableStateOf(meal.containsMeat) }
 
     val mealTypes = listOf("breakfast", "lunch", "dinner", "snack")
-    var mealType by remember { mutableStateOf(mealTypes.first()) }
+    var mealType by remember { mutableStateOf(meal.mealType) }
     var expanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text("Add Meal") })
+            CenterAlignedTopAppBar(
+                title = { Text("Edit Meal") }
+            )
         }
     ) { padding ->
 
@@ -50,7 +54,7 @@ fun AddMealScreen(
                 .padding(padding)
         ) {
 
-            // SCROLLBARER INHALT
+            // Scrollbarer Inhalt
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -143,7 +147,10 @@ fun AddMealScreen(
 
                 item {
                     Text("Rating", style = MaterialTheme.typography.titleMedium)
-                    RatingBar(rating = rating, onRatingSelected = { rating = it })
+                    RatingBar(
+                        rating = rating,
+                        onRatingSelected = { rating = it }
+                    )
                 }
 
                 item {
@@ -181,10 +188,10 @@ fun AddMealScreen(
                 }
             }
 
-            //  FESTER SAVE BUTTON (IMMER SICHTBAR)
+            // 🔒 FESTER SAVE BUTTON
             Button(
                 onClick = {
-                    val meal = Meal(
+                    val updatedMeal = meal.copy(
                         title = title,
                         calories = calories.toIntOrNull() ?: 0,
                         carbs = carbs.toIntOrNull() ?: 0,
@@ -196,17 +203,16 @@ fun AddMealScreen(
                         vegetarian = vegetarian,
                         containsMeat = containsMeat
                     )
-                    viewModel.addMeal(meal)
+
+                    viewModel.editMeal(updatedMeal)
                     onSave()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Text("Save meal")
+                Text("Save changes")
             }
         }
     }
 }
-
-
