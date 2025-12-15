@@ -1,266 +1,212 @@
 package com.example.sustainablenutritiontracker.ui.meal
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons              // ADDED
-import androidx.compose.material.icons.filled.Star      // ADDED
-import androidx.compose.material.icons.outlined.Star    // ADDED
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment                    // ADDED (for align)
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.text.KeyboardOptions // ADDED
-import androidx.compose.ui.text.input.KeyboardType      // ADDED
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.sustainablenutritiontracker.data.model.Meal
+import com.example.sustainablenutritiontracker.ui.components.RatingBar
+import com.example.sustainablenutritiontracker.ui.components.SwitchRow
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModel
-import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMealScreen(
     viewModel: MealViewModel,
-    onSave: () -> Unit          // caller handles navigation
+    onSave: () -> Unit
 ) {
-    // ---- Text field states ----
     var title by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
-    var carbs by remember { mutableStateOf("") }      // kept for future use
+    var carbs by remember { mutableStateOf("") }
     var fat by remember { mutableStateOf("") }
     var protein by remember { mutableStateOf("") }
-
-    // ---- Rating ----
     var rating by remember { mutableIntStateOf(0) }
 
-    // ---- Meal type dropdown ----
+    var isVegan by remember { mutableStateOf(false) }
+    var vegetarian by remember { mutableStateOf(false) }
+    var containsMeat by remember { mutableStateOf(false) }
+
     val mealTypes = listOf("breakfast", "lunch", "dinner", "snack")
     var mealType by remember { mutableStateOf(mealTypes.first()) }
     var expanded by remember { mutableStateOf(false) }
-    var environmentalScore by remember { mutableStateOf(0) }
-    // ---- Dietary flags (IMPORTANT for filter) ----
-    var isVegan by remember { mutableStateOf(false) }
-    var containsMeat by remember { mutableStateOf(false) }
-
-    // ---- Error dialog ----
-    var showMacroError by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Add Meal") }
-            )
+            CenterAlignedTopAppBar(title = { Text("Add Meal") })
         }
-    ) { innerPadding ->
+    ) { padding ->
+
         Column(
             modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .padding(padding)
         ) {
 
-            // ---- Title ----
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Meal title") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // ---- Calories ----
-            OutlinedTextField(
-                value = calories,
-                onValueChange = { calories = it.filter { ch -> ch.isDigit() } },
-                label = { Text("Calories") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // ---- Carbs ----
-            OutlinedTextField(
-                value = carbs,
-                onValueChange = { carbs = it.filter { ch -> ch.isDigit() } },
-                label = { Text("Carbs (g)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // ---- Fat ----
-            OutlinedTextField(
-                value = fat,
-                onValueChange = { fat = it.filter { ch -> ch.isDigit() } },
-                label = { Text("Fat (g)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // ---- Protein ----
-            OutlinedTextField(
-                value = protein,
-                onValueChange = { protein = it.filter { ch -> ch.isDigit() } },
-                label = { Text("Protein (g)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // ---- Meal Type Dropdown ----
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+            // SCROLLBARER INHALT
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedTextField(
-                    value = mealType,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Meal Type") },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth(),
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    }
-                )
 
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    mealTypes.forEach { type ->
-                        DropdownMenuItem(
-                            text = { Text(type) },
-                            onClick = {
-                                mealType = type
-                                expanded = false
+                item {
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Meal title") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = calories,
+                        onValueChange = { calories = it.filter(Char::isDigit) },
+                        label = { Text("Calories") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = carbs,
+                        onValueChange = { carbs = it.filter(Char::isDigit) },
+                        label = { Text("Carbs (g)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = fat,
+                        onValueChange = { fat = it.filter(Char::isDigit) },
+                        label = { Text("Fat (g)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = protein,
+                        onValueChange = { protein = it.filter(Char::isDigit) },
+                        label = { Text("Protein (g)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded }
+                    ) {
+                        OutlinedTextField(
+                            value = mealType,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Meal type") },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
                             }
                         )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            mealTypes.forEach {
+                                DropdownMenuItem(
+                                    text = { Text(it) },
+                                    onClick = {
+                                        mealType = it
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Text("Rating", style = MaterialTheme.typography.titleMedium)
+                    RatingBar(rating = rating, onRatingSelected = { rating = it })
+                }
+
+                item {
+                    Text("Dietary options", style = MaterialTheme.typography.titleMedium)
+                }
+
+                item {
+                    SwitchRow("Vegan", isVegan) {
+                        isVegan = it
+                        if (it) {
+                            vegetarian = true
+                            containsMeat = false
+                        }
+                    }
+                }
+
+                item {
+                    SwitchRow("Vegetarian", vegetarian) {
+                        vegetarian = it
+                        if (it) {
+                            isVegan = false
+                            containsMeat = false
+                        }
+                    }
+                }
+
+                item {
+                    SwitchRow("Contains meat", containsMeat) {
+                        containsMeat = it
+                        if (it) {
+                            vegetarian = false
+                            isVegan = false
+                        }
                     }
                 }
             }
 
-            // ---- Rating ----
-            Text(text = "Rating", style = MaterialTheme.typography.titleMedium)
-            RatingBar(
-                rating = rating,
-                onRatingSelected = { rating = it }
-            )
-
-            // ---- Dietary Options (FILTER BASIS) ----
-            Text(text = "Dietary options", style = MaterialTheme.typography.titleMedium)
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Vegan", modifier = Modifier.weight(1f))
-                Switch(
-                    checked = isVegan,
-                    onCheckedChange = {
-                        isVegan = it
-                        if (it) containsMeat = false
-                    }
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Contains meat", modifier = Modifier.weight(1f))
-                Switch(
-                    checked = containsMeat,
-                    onCheckedChange = {
-                        containsMeat = it
-                        if (it) isVegan = false
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // ---- Save Button ----
+            //  FESTER SAVE BUTTON (IMMER SICHTBAR)
             Button(
                 onClick = {
-                    val caloriesInt = calories.toIntOrNull() ?: 0
-                    val carbsInt = carbs.toIntOrNull() ?: 0
-                    val fatInt = fat.toIntOrNull() ?: 0
-                    val proteinInt = protein.toIntOrNull() ?: 0
-
-                    try {
-                        val meal = Meal(
-                            title = title,
-                            calories = caloriesInt,
-                            carbs = carbsInt,
-                            fat = fatInt,
-                            protein = proteinInt,
-                            mealType = mealType,
-                            rating = rating,
-                            isVegan = isVegan,
-                            containsMeat = containsMeat ,
-                            environmentalScore = environmentalScore
-                        )
-
-                        Log.d(
-                            "MealDebug",
-                            "Creating Meal -> calories=$caloriesInt, carbs=$carbsInt, fat=$fatInt, protein=$proteinInt"
-                        )
-
-                        viewModel.addMeal(meal)
-                        onSave()
-
-                    } catch (e: IllegalArgumentException) {
-                        showMacroError = true
-                    }
+                    val meal = Meal(
+                        title = title,
+                        calories = calories.toIntOrNull() ?: 0,
+                        carbs = carbs.toIntOrNull() ?: 0,
+                        fat = fat.toIntOrNull() ?: 0,
+                        protein = protein.toIntOrNull() ?: 0,
+                        mealType = mealType,
+                        rating = rating,
+                        isVegan = isVegan,
+                        vegetarian = vegetarian,
+                        containsMeat = containsMeat
+                    )
+                    viewModel.addMeal(meal)
+                    onSave()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.End)
+                    .padding(16.dp)
             ) {
                 Text("Save meal")
             }
-
-            // ---- Alert Dialog (macro error) ----
-            if (showMacroError) {
-                AlertDialog(
-                    onDismissRequest = { showMacroError = false },
-                    confirmButton = {
-                        TextButton(onClick = { showMacroError = false }) {
-                            Text("OK")
-                        }
-                    },
-                    title = { Text("Invalid nutrition values") },
-                    text = {
-                        Text(
-                            "The macronutrients appear too low in relation to calories. " +
-                                    "Please adjust the values."
-                        )
-                    }
-                )
-            }
         }
     }
 }
 
-@Composable
-private fun RatingBar(
-    rating: Int,
-    onRatingSelected: (Int) -> Unit,
-    maxRating: Int = 5
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        for (i in 1..maxRating) {
-            IconButton(onClick = { onRatingSelected(i) }) {
-                if (i <= rating) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = "Star $i",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Outlined.Star,
-                        contentDescription = "Star $i"
-                    )
-                }
-            }
-        }
-    }
-}
+
