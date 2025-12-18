@@ -16,6 +16,11 @@ import com.example.sustainablenutritiontracker.ui.meal.MealListViewModel
 import com.example.sustainablenutritiontracker.ui.meal.MealListViewModelFactory
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModelFactory
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.example.sustainablenutritiontracker.ui.today.TodayListScreen
+
+const val TODAY_LIST_ROUTE = "today_list"
 
 @Composable
 fun AppNavigation() {
@@ -52,7 +57,8 @@ fun AppNavigation() {
                 onNavigateToAdd = { navController.navigate("addMeal") },
                 onEditMeal = { id ->
                     navController.navigate("editMeal/$id")
-                }
+                },
+                onNavigateToTodayList = { navController.navigate(TODAY_LIST_ROUTE) }
             )
         }
 
@@ -63,6 +69,17 @@ fun AppNavigation() {
 
             )
         }
+
+        composable(TODAY_LIST_ROUTE) {
+            val meals by mealListVM.meals.collectAsState()
+
+            TodayListScreen(
+                items = meals, // TEMP: uses existing meals list (NOT issue #44 storage)
+                onBack = { navController.popBackStack() },
+                onDeleteClicked = { meal -> mealListVM.deleteMeal(meal) }
+            )
+        }
+
 
         composable("editMeal/{mealId}") { backStackEntry ->
             val mealId = backStackEntry.arguments?.getString("mealId")!!.toInt()

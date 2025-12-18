@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.material.icons.filled.List
 import com.example.sustainablenutritiontracker.ui.viewmodel.FilterType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,7 +22,8 @@ import com.example.sustainablenutritiontracker.ui.viewmodel.FilterType
 fun MealListScreen(
     viewModel: MealListViewModel,
     onEditMeal: (Int) -> Unit,
-    onNavigateToAdd: () -> Unit
+    onNavigateToAdd: () -> Unit,
+    onNavigateToTodayList: () -> Unit = {} // NEW (default)
 ) {
     val meals by viewModel.meals.collectAsState()
     val query by viewModel.searchQuery.collectAsState()
@@ -31,7 +32,15 @@ fun MealListScreen(
     Scaffold(
         topBar = {
             Column {
-                CenterAlignedTopAppBar(title = { Text("Meals") })
+                CenterAlignedTopAppBar(
+                    title = { Text("Meals") },
+                    actions = {
+                        IconButton(onClick = { onNavigateToTodayList() }) {
+                            Icon(Icons.Default.List, contentDescription = "Today's List")
+                        }
+                    }
+                )
+
 
                 OutlinedTextField(
                     value = query,
