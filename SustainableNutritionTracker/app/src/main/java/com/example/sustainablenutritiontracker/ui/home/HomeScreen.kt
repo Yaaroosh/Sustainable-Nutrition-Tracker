@@ -11,34 +11,49 @@ import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModel
+import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModel
 
-// 🎨 Violet palette
+
 private val VioletPrimary = Color(0xFF7C4DFF)
 private val VioletCalories = Color(0xFFB388FF)
 private val VioletCarbs = Color(0xFF9575CD)
 private val VioletProtein = Color(0xFF5E35B1)
 
-@OptIn(ExperimentalMaterial3Api::class) @Composable fun HomeScreen( onNavigateToList: () -> Unit, onNavigateToAdd: () -> Unit ) {
-    val caloriesTaken = 1200
-    val caloriesLimit = 2000
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(
+    dailyGoalViewModel: DailyGoalViewModel,
+    mealViewModel: MealViewModel,
+    onNavigateToList: () -> Unit,
+    onNavigateToAdd: () -> Unit,
+    onNavigateToSetGoals: () -> Unit
+) {
+    // ViewModels auslesen
+    val dailyGoals by dailyGoalViewModel.dailyGoals.collectAsState()
+    val nutritionTotals by mealViewModel.nutritionTotals.collectAsState()
 
-    val carbsTaken = 150
-    val carbsLimit = 250
+    // Dynamische Werte aus Database
+    val caloriesLimit = dailyGoals.caloriesLimit
+    val carbsLimit = dailyGoals.carbsLimit
+    val fatLimit = dailyGoals.fatLimit
+    val proteinLimit = dailyGoals.proteinLimit
 
-    val fatTaken = 100
-    val fatLimit = 150
+    val caloriesTaken = nutritionTotals.calories
+    val carbsTaken = nutritionTotals.carbs
+    val fatTaken = nutritionTotals.fat
+    val proteinTaken = nutritionTotals.protein
 
-    val proteinTaken = 90
-    val proteinLimit = 13
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -64,8 +79,6 @@ private val VioletProtein = Color(0xFF5E35B1)
             }
         }
     ) { padding ->
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -75,30 +88,27 @@ private val VioletProtein = Color(0xFF5E35B1)
                             Color.White,
                             Color(0xFFEDE7F6),
                             Color(0xFFF3E5F5),
-
-
                         )
                     )
                 )
                 .padding(padding)
                 .padding(16.dp)
         ) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-
-        Spacer(modifier = Modifier.height(8.dp))
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
-            ){
-            Text(
-                text = "Today's Intake",
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                color = VioletPrimary
+            ) {
+                Text(
+                    text = "Today's Intake",
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = VioletPrimary
+                )
+            }
 
-            )}
             Spacer(modifier = Modifier.height(20.dp))
-
 
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -110,20 +120,15 @@ private val VioletProtein = Color(0xFF5E35B1)
                     limit = caloriesLimit,
                     color = VioletCalories,
                     icon = Icons.Default.Restaurant,
-
-
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 🔵🟣🟪 Macro circles
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-
-
                 MacroCircle(
                     label = "Carbs",
                     current = carbsTaken,
@@ -185,12 +190,26 @@ private val VioletProtein = Color(0xFF5E35B1)
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // NEU: Set Daily Goals Button
+            OutlinedButton(
+                onClick = onNavigateToSetGoals,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = VioletPrimary
+                ),
+                border = BorderStroke(2.dp, VioletPrimary)
+            ) {
+                Text("Set Daily Goals")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
                 onClick = onNavigateToList,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = VioletCalories),
+                    contentColor = VioletCalories
+                ),
                 border = BorderStroke(3.dp, VioletCalories)
             ) {
                 Text("View Meal List")
@@ -199,6 +218,7 @@ private val VioletProtein = Color(0xFF5E35B1)
     }
 }
 
+// MacroCircle und MacroDetailRow bleiben gleich
 @Composable
 fun MacroCircle(
     label: String,
@@ -231,7 +251,6 @@ fun MacroCircle(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(label, fontWeight = FontWeight.Medium, color = color)
     }
 }
@@ -256,7 +275,6 @@ fun MacroDetailRow(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Icon(
                 imageVector = icon,
                 contentDescription = title,
@@ -280,13 +298,4 @@ fun MacroDetailRow(
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(
-        onNavigateToList = {},
-        onNavigateToAdd = {}
-    )
 }
