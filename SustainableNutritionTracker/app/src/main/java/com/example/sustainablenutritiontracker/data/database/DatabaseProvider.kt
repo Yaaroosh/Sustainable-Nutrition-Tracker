@@ -8,6 +8,11 @@ object DatabaseProvider {
 
     fun provideRepository(context: Context): MealRepository {
         val db = AppDatabase.getDatabase(context)
-        return MealRepository(db.mealDao())
+
+        // ← HIER ÄNDERN: Beide DAOs übergeben
+        return MealRepository(
+            db.mealDao(),
+            db.dailyGoalsDao()
+        )
     }
 }
