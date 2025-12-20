@@ -46,9 +46,8 @@ class MealRepository(
         mealDao.deleteAllMeals()
     }
 
-// --- Updated: Daily nutrition totals (tracking only 'Today's list') ---
 fun getDailyNutritionTotals(): Flow<NutritionTotals> {
-    return mealDao.getTodaysMeals().map { todaysMeals ->
+    return mealDao.getTodaysListMeals().map { todaysMeals ->
         NutritionTotals(
             calories = todaysMeals.sumOf { it.calories },
             protein  = todaysMeals.sumOf { it.protein },
@@ -57,4 +56,3 @@ fun getDailyNutritionTotals(): Flow<NutritionTotals> {
         )
     }
 }
-
