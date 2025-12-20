@@ -46,17 +46,15 @@ class MealRepository(
         mealDao.deleteAllMeals()
     }
 
-    // --- NEW: Daily nutrition totals (only today's meals) ---
-    fun getDailyNutritionTotals(): Flow<NutritionTotals> {
-        val today = LocalDate.now()
-        return mealDao.getAllMeals().map { meals ->
-            val todaysMeals = meals.filter { it.date.toLocalDate() == today }
-            NutritionTotals(
-                calories = todaysMeals.sumOf { it.calories },
-                protein  = todaysMeals.sumOf { it.protein },
-                carbs    = todaysMeals.sumOf { it.carbs },
-                fat      = todaysMeals.sumOf { it.fat }
-            )
-        }
+// --- Updated: Daily nutrition totals (tracking only 'Today's list') ---
+fun getDailyNutritionTotals(): Flow<NutritionTotals> {
+    return mealDao.getTodaysMeals().map { todaysMeals ->
+        NutritionTotals(
+            calories = todaysMeals.sumOf { it.calories },
+            protein  = todaysMeals.sumOf { it.protein },
+            carbs    = todaysMeals.sumOf { it.carbs },
+            fat      = todaysMeals.sumOf { it.fat }
+        )
     }
 }
+
