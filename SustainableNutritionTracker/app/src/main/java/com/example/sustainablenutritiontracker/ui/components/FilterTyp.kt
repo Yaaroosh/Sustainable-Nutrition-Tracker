@@ -1,4 +1,4 @@
-package com.example.sustainablenutritiontracker.ui.viewmodel
+package com.example.sustainablenutritiontracker.ui.components
 
 enum class FilterType {
     ALL,

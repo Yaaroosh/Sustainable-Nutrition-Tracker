@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.data.model.DailyGoals
 
-@Database(entities = [Meal::class, DailyGoals::class], version = 3)
+@Database(entities = [Meal::class, DailyGoals::class], version = 4)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun mealDao(): MealDao
     abstract fun dailyGoalsDao(): DailyGoalsDao

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.data.repository.MealRepository
-import com.example.sustainablenutritiontracker.ui.viewmodel.FilterType
+import com.example.sustainablenutritiontracker.ui.components.FilterType
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
