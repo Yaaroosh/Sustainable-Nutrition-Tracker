@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-import com.example.sustainablenutritiontracker.ui.viewmodel.FilterType
+import com.example.sustainablenutritiontracker.ui.components.FilterType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +31,11 @@ fun MealListScreen(
     Scaffold(
         topBar = {
             Column {
-                CenterAlignedTopAppBar(title = { Text("Meals") })
+                CenterAlignedTopAppBar(title =
+                { Text("Meals") },
+
+
+                )
 
                 OutlinedTextField(
                     value = query,

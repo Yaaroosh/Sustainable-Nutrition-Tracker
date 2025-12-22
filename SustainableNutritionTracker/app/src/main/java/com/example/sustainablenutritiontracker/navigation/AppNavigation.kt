@@ -20,6 +20,8 @@ import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModelFa
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModelFactory
 
+const val TODAY_LIST_ROUTE = "today_list"
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()

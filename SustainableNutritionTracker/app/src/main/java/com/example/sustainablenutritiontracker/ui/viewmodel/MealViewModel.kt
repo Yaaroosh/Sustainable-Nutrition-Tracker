@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.example.sustainablenutritiontracker.data.model.toLocalDate
+import com.example.sustainablenutritiontracker.ui.components.FilterType
 
 
 @RequiresApi(Build.VERSION_CODES.O)

@@ -69,7 +69,7 @@ class MealRepository(
         }
     }
 
-    // --- NEW: Daily nutrition totals (only today's meals) ---
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun getDailyNutritionTotals(): Flow<NutritionTotals> {
         return mealDao.getAllMeals().map { meals ->
