@@ -72,8 +72,8 @@ class MealRepository(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getDailyNutritionTotals(): Flow<NutritionTotals> {
+        val today = LocalDate.now()
         return mealDao.getAllMeals().map { meals ->
-            val today = LocalDate.now()
             val todaysMeals = meals.filter { it.date.toLocalDate() == today }
             NutritionTotals(
                 calories = todaysMeals.sumOf { it.calories },
