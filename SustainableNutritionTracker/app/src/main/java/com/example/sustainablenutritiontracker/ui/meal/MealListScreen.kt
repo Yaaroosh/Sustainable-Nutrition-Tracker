@@ -21,7 +21,7 @@ import com.example.sustainablenutritiontracker.ui.components.FilterType
 @Composable
 fun MealListScreen(
     viewModel: MealListViewModel,
-    onEditMeal: (Int) -> Unit,
+    onEditMeal: (Long) -> Unit,
     onNavigateToAdd: () -> Unit
 ) {
     val meals by viewModel.meals.collectAsState()

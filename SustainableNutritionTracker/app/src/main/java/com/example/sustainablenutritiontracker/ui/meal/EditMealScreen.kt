@@ -1,14 +1,11 @@
 package com.example.sustainablenutritiontracker.ui.meal
 
-import android.util.Log
-import android.widget.RatingBar
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -17,12 +14,12 @@ import com.example.sustainablenutritiontracker.ui.components.SwitchRow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditMealScreen(
-    mealId: Int,
+    mealId: Long,
     viewModel: MealListViewModel,
     onSave: () -> Unit
 ) {
     val meals by viewModel.meals.collectAsState()
-    val meal = meals.firstOrNull { it.id == mealId } ?: return
+    val meal = meals.firstOrNull { it.id == mealId.toLong() } ?: return
 
     // ---- States (prefilled) ----
     var title by remember { mutableStateOf(meal.title) }

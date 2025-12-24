@@ -15,21 +15,31 @@ import com.example.sustainablenutritiontracker.ui.meal.EditMealScreen
 import com.example.sustainablenutritiontracker.ui.meal.MealListScreen
 import com.example.sustainablenutritiontracker.ui.meal.MealListViewModel
 import com.example.sustainablenutritiontracker.ui.meal.MealListViewModelFactory
+import com.example.sustainablenutritiontracker.ui.meal.TodayScreen
+import com.example.sustainablenutritiontracker.ui.today.TodayViewModel
+import com.example.sustainablenutritiontracker.ui.today.TodayViewModelFactory
 import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModelFactory
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModelFactory
 
-const val TODAY_LIST_ROUTE = "today_list"
+// ---------- ROUTES ----------
+const val HOME_ROUTE = "home"
+const val LIST_ROUTE = "list"
+const val ADD_MEAL_ROUTE = "addMeal"
+const val EDIT_MEAL_ROUTE = "editMeal"
+const val SET_GOALS_ROUTE = "setGoals"
+const val TODAY_ROUTE = "today"
 
 @Composable
 fun AppNavigation() {
+
     val navController = rememberNavController()
     val context = LocalContext.current
-
     val repository = DatabaseProvider.provideRepository(context)
+    val todayrepo = DatabaseProvider.provideTodayMealRepository(context)
 
-    // ViewModels
+    // ---------- VIEWMODELS ----------
     val mealListVM: MealListViewModel = viewModel(
         factory = MealListViewModelFactory(repository)
     )
@@ -42,67 +52,85 @@ fun AppNavigation() {
         factory = DailyGoalViewModelFactory(repository)
     )
 
-    // First-Time Check: Wenn Default-Werte → zu SetGoals navigieren
+    val todayVM: TodayViewModel = viewModel(
+        factory = TodayViewModelFactory(todayrepo)
+    )
+
+    // ---------- FIRST TIME SETUP CHECK ----------
     val dailyGoals by dailyGoalVM.dailyGoals.collectAsState()
     var hasNavigated by remember { mutableStateOf(false) }
 
     LaunchedEffect(dailyGoals) {
         if (!hasNavigated && dailyGoals == DailyGoals()) {
-            navController.navigate("setGoals") {
-                popUpTo("home") { inclusive = true }
+            navController.navigate(SET_GOALS_ROUTE) {
+                popUpTo(HOME_ROUTE) { inclusive = true }
             }
             hasNavigated = true
         }
     }
 
+    // ---------- NAV HOST ----------
     NavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = HOME_ROUTE
     ) {
-        composable("home") {
+
+        composable(HOME_ROUTE) {
             HomeScreen(
                 dailyGoalViewModel = dailyGoalVM,
                 mealViewModel = mealVM,
-                onNavigateToList = { navController.navigate("list") },
-                onNavigateToAdd = { navController.navigate("addMeal") },
-                onNavigateToSetGoals = { navController.navigate("setGoals") }
+                onNavigateToList = { navController.navigate(LIST_ROUTE) },
+                onNavigateToAdd = { navController.navigate(ADD_MEAL_ROUTE) },
+                onNavigateToSetGoals = { navController.navigate(SET_GOALS_ROUTE) },
+                onNavigateToToday = { navController.navigate(TODAY_ROUTE) }
             )
         }
 
-        composable("setGoals") {
+        composable(SET_GOALS_ROUTE) {
             SetDailyGoalScreen(
                 viewModel = dailyGoalVM,
                 onNavigateBack = {
-                    navController.navigate("home") {
-                        popUpTo("setGoals") { inclusive = true }
+                    navController.navigate(HOME_ROUTE) {
+                        popUpTo(SET_GOALS_ROUTE) { inclusive = true }
                     }
                 }
             )
         }
 
-        composable("list") {
+        composable(LIST_ROUTE) {
             MealListScreen(
                 viewModel = mealListVM,
-                onNavigateToAdd = { navController.navigate("addMeal") },
-                onEditMeal = { id ->
-                    navController.navigate("editMeal/$id")
+                onNavigateToAdd = { navController.navigate(ADD_MEAL_ROUTE) },
+                onEditMeal = { mealId ->
+                    navController.navigate("$EDIT_MEAL_ROUTE/$mealId")
                 }
             )
         }
 
-        composable("addMeal") {
+        composable(ADD_MEAL_ROUTE) {
             AddMealScreen(
                 viewModel = mealVM,
-                onSave = { navController.popBackStack() },
+                onSave = { navController.popBackStack() }
             )
         }
 
-        composable("editMeal/{mealId}") { backStackEntry ->
-            val mealId = backStackEntry.arguments?.getString("mealId")!!.toInt()
+        composable("$EDIT_MEAL_ROUTE/{mealId}") { backStackEntry ->
+            val mealId = backStackEntry.arguments
+                ?.getString("mealId")
+                ?.toLong()
+                ?: return@composable
+
             EditMealScreen(
                 mealId = mealId,
                 viewModel = mealListVM,
                 onSave = { navController.popBackStack() }
+            )
+        }
+
+        composable(TODAY_ROUTE) {
+            TodayScreen(
+                viewModel = todayVM,
+                onBack = { navController.popBackStack() }
             )
         }
     }
