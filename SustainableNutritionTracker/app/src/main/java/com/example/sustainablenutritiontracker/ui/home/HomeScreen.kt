@@ -3,6 +3,8 @@ package com.example.sustainablenutritiontracker.ui.home
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FitnessCenter
@@ -37,7 +39,8 @@ fun HomeScreen(
     mealViewModel: MealViewModel,
     onNavigateToList: () -> Unit,
     onNavigateToAdd: () -> Unit,
-    onNavigateToSetGoals: () -> Unit
+    onNavigateToSetGoals: () -> Unit,
+    onNavigateToToday: () -> Unit
 ) {
     // ViewModels auslesen
     val dailyGoals by dailyGoalViewModel.dailyGoals.collectAsState()
@@ -82,6 +85,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
@@ -190,7 +194,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // NEU: Set Daily Goals Button
+            // Set Daily Goals Button
             OutlinedButton(
                 onClick = onNavigateToSetGoals,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -204,6 +208,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // View Meal List Button
             OutlinedButton(
                 onClick = onNavigateToList,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -213,6 +218,20 @@ fun HomeScreen(
                 border = BorderStroke(3.dp, VioletCalories)
             ) {
                 Text("View Meal List")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Go to Today Button
+            OutlinedButton(
+                onClick = onNavigateToToday,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = VioletCarbs
+                ),
+                border = BorderStroke(2.dp, VioletCarbs)
+            ) {
+                Text("Go to Today")
             }
         }
     }

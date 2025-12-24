@@ -6,11 +6,13 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.data.model.DailyGoals
+import com.example.sustainablenutritiontracker.data.model.TodayMealEntity
 
-@Database(entities = [Meal::class, DailyGoals::class], version = 4)
+@Database(entities = [Meal::class, DailyGoals::class,TodayMealEntity::class], version = 8,exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun mealDao(): MealDao
     abstract fun dailyGoalsDao(): DailyGoalsDao
+    abstract fun todayMealDao(): TodayMealDao
 
         companion object {
         @Volatile
