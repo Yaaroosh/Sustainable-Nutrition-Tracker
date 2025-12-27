@@ -1,20 +1,25 @@
 package com.example.sustainablenutritiontracker.data.database
 
 import android.content.Context
-import androidx.room.Room
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.data.model.DailyGoals
+import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.data.model.TodayMealEntity
 
-@Database(entities = [Meal::class, DailyGoals::class,TodayMealEntity::class], version = 8,exportSchema = false)
+@Database(
+    entities = [Meal::class, DailyGoals::class, TodayMealEntity::class],
+    version = 10,
+    exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
+
     abstract fun mealDao(): MealDao
     abstract fun dailyGoalsDao(): DailyGoalsDao
     abstract fun todayMealDao(): TodayMealDao
 
-        companion object {
+    companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 

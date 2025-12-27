@@ -6,13 +6,14 @@ import com.example.sustainablenutritiontracker.data.repository.MealRepository
 import com.example.sustainablenutritiontracker.data.repository.TodayMealRepository
 
 class TodayViewModelFactory(
-    private val repository: TodayMealRepository
+    private val todayRepo: TodayMealRepository,
+    private val mealRepo: MealRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TodayViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return TodayViewModel(repository) as T
+            return TodayViewModel(todayRepo, mealRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

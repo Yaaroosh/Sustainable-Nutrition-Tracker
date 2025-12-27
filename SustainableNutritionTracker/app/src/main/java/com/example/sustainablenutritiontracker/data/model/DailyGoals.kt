@@ -10,5 +10,6 @@ data class DailyGoals(
     val caloriesLimit: Int = 2000,
     val carbsLimit: Int = 250,
     val fatLimit: Int = 70,
-    val proteinLimit: Int = 150
+    val proteinLimit: Int = 150,
+    val isInitialized: Boolean = false
 )

@@ -24,7 +24,7 @@ class MealRepository(
         mealDao.insertMeal(meal)
     }
 
-    // --- Existing APIs already in the project ---
+
     fun getMeals(): Flow<List<Meal>> = mealDao.getAllMeals()
 
     // Get all meals sorted by date (alias of getMealsSortedByDate for compatibility)
@@ -83,5 +83,9 @@ class MealRepository(
             )
         }
     }
+
+    fun getAllMealsByWorstRating(): Flow<List<Meal>> =
+        mealDao.getAllMealsByWorstRating()
+
 }
 

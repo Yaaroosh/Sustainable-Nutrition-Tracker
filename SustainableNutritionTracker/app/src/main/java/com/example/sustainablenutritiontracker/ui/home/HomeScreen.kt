@@ -1,5 +1,7 @@
 package com.example.sustainablenutritiontracker.ui.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,39 +25,41 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.sustainablenutritiontracker.ui.today.TodayViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModel
-import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModel
-
 
 private val VioletPrimary = Color(0xFF7C4DFF)
 private val VioletCalories = Color(0xFFB388FF)
 private val VioletCarbs = Color(0xFF9575CD)
 private val VioletProtein = Color(0xFF5E35B1)
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     dailyGoalViewModel: DailyGoalViewModel,
-    mealViewModel: MealViewModel,
+    todayViewModel: TodayViewModel,
     onNavigateToList: () -> Unit,
     onNavigateToAdd: () -> Unit,
     onNavigateToSetGoals: () -> Unit,
     onNavigateToToday: () -> Unit
 ) {
-    // ViewModels auslesen
     val dailyGoals by dailyGoalViewModel.dailyGoals.collectAsState()
-    val nutritionTotals by mealViewModel.nutritionTotals.collectAsState()
+    val totals by todayViewModel.totalsNow.collectAsState() // ✅ ALWAYS TODAY
 
-    // Dynamische Werte aus Database
     val caloriesLimit = dailyGoals.caloriesLimit
     val carbsLimit = dailyGoals.carbsLimit
     val fatLimit = dailyGoals.fatLimit
     val proteinLimit = dailyGoals.proteinLimit
 
-    val caloriesTaken = nutritionTotals.calories
-    val carbsTaken = nutritionTotals.carbs
-    val fatTaken = nutritionTotals.fat
-    val proteinTaken = nutritionTotals.protein
+    val caloriesTaken = totals.calories
+    val carbsTaken = totals.carbs
+    val fatTaken = totals.fat
+    val proteinTaken = totals.protein
+
+    val contentWidth = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
 
     Scaffold(
         topBar = {
@@ -96,26 +100,25 @@ fun HomeScreen(
                     )
                 )
                 .padding(padding)
-                .padding(16.dp)
+                .padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
 
+            // Header
+            Text(
+                text = "Daily Overview",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = VioletPrimary,
+                modifier = contentWidth
+                    .wrapContentWidth(Alignment.CenterHorizontally)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Big calories circle
             Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Today's Intake",
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = VioletPrimary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Box(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = contentWidth,
                 contentAlignment = Alignment.Center
             ) {
                 MacroCircle(
@@ -129,15 +132,16 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Macro circles row
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = contentWidth,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 MacroCircle(
                     label = "Carbs",
                     current = carbsTaken,
                     limit = carbsLimit,
-                    color = VioletProtein,
+                    color = VioletCarbs,
                     icon = Icons.Default.LocalFireDepartment
                 )
 
@@ -158,86 +162,87 @@ fun HomeScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(26.dp))
 
-            MacroDetailRow(
-                title = "Calories",
-                current = caloriesTaken,
-                limit = caloriesLimit,
-                color = VioletProtein,
-                icon = Icons.Default.Restaurant
-            )
-
-            MacroDetailRow(
-                title = "Carbs",
-                current = carbsTaken,
-                limit = carbsLimit,
-                color = VioletProtein,
-                icon = Icons.Default.LocalFireDepartment
-            )
-
-            MacroDetailRow(
-                title = "Fat",
-                current = fatTaken,
-                limit = fatLimit,
-                color = VioletProtein,
-                icon = Icons.Default.Opacity
-            )
-
-            MacroDetailRow(
-                title = "Protein",
-                current = proteinTaken,
-                limit = proteinLimit,
-                color = VioletProtein,
-                icon = Icons.Default.FitnessCenter
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Set Daily Goals Button
-            OutlinedButton(
-                onClick = onNavigateToSetGoals,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = VioletPrimary
-                ),
-                border = BorderStroke(2.dp, VioletPrimary)
-            ) {
-                Text("Set Daily Goals")
+            // Detail rows (values)
+            Column(modifier = contentWidth) {
+                MacroDetailRow(
+                    title = "Calories",
+                    current = caloriesTaken,
+                    limit = caloriesLimit,
+                    color = VioletCalories,
+                    icon = Icons.Default.Restaurant
+                )
+                MacroDetailRow(
+                    title = "Carbs",
+                    current = carbsTaken,
+                    limit = carbsLimit,
+                    color = VioletCarbs,
+                    icon = Icons.Default.LocalFireDepartment
+                )
+                MacroDetailRow(
+                    title = "Fat",
+                    current = fatTaken,
+                    limit = fatLimit,
+                    color = VioletProtein,
+                    icon = Icons.Default.Opacity
+                )
+                MacroDetailRow(
+                    title = "Protein",
+                    current = proteinTaken,
+                    limit = proteinLimit,
+                    color = VioletProtein,
+                    icon = Icons.Default.FitnessCenter
+                )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // View Meal List Button
-            OutlinedButton(
-                onClick = onNavigateToList,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = VioletCalories
-                ),
-                border = BorderStroke(3.dp, VioletCalories)
-            ) {
-                Text("View Meal List")
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Go to Today Button
             OutlinedButton(
                 onClick = onNavigateToToday,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+                modifier = contentWidth.height(52.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = VioletCarbs
                 ),
                 border = BorderStroke(2.dp, VioletCarbs)
             ) {
-                Text("Go to Today")
+                Text("Go to Today", fontWeight = FontWeight.SemiBold)
             }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Set Daily Goals full width like content
+            OutlinedButton(
+                onClick = onNavigateToSetGoals,
+                modifier = contentWidth.height(52.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = VioletPrimary
+                ),
+                border = BorderStroke(2.dp, VioletPrimary)
+            ) {
+                Text("Set Daily Goals", fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // View Meal List full width like content
+            OutlinedButton(
+                onClick = onNavigateToList,
+                modifier = contentWidth.height(52.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = VioletCalories
+                ),
+                border = BorderStroke(2.dp, VioletCalories)
+            ) {
+                Text("View Meal List", fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
 
-// MacroCircle und MacroDetailRow bleiben gleich
 @Composable
 fun MacroCircle(
     label: String,
@@ -246,13 +251,11 @@ fun MacroCircle(
     color: Color,
     icon: ImageVector
 ) {
-    val progress = current.toFloat() / limit.toFloat()
+    val safeLimit = if (limit <= 0) 1 else limit
+    val progress = current.toFloat() / safeLimit.toFloat()
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-        ) {
+        Box(contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 progress = { progress.coerceIn(0f, 1f) },
                 modifier = Modifier.size(92.dp),
@@ -282,6 +285,8 @@ fun MacroDetailRow(
     color: Color,
     icon: ImageVector
 ) {
+    val safeLimit = if (limit <= 0) 1 else limit
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -311,7 +316,7 @@ fun MacroDetailRow(
             )
 
             Text(
-                text = "$current / $limit",
+                text = "$current / $safeLimit",
                 fontWeight = FontWeight.SemiBold,
                 color = color
             )
