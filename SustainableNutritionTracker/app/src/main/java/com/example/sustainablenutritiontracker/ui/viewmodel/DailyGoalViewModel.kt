@@ -4,35 +4,40 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sustainablenutritiontracker.data.model.DailyGoals
 import com.example.sustainablenutritiontracker.data.repository.MealRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class DailyGoalViewModel(private val repository: MealRepository) : ViewModel() {
+class DailyGoalViewModel(
+    private val repository: MealRepository
+) : ViewModel() {
 
-    private val _dailyGoals = MutableStateFlow(DailyGoals())
-    val dailyGoals: StateFlow<DailyGoals> = _dailyGoals
+    private val defaultGoals = DailyGoals()
 
-    init {
-        loadGoals()
-    }
 
-    private fun loadGoals() {
-        viewModelScope.launch {
-            repository.getDailyGoals().collect { goals ->
-                _dailyGoals.value = goals ?: DailyGoals()
-            }
-        }
-    }
+    val dailyGoals: StateFlow<DailyGoals> =
+        repository.getDailyGoals()
+            .map { it ?: defaultGoals }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = defaultGoals
+            )
 
-    fun updateGoals(caloriesLimit: Int, carbsLimit: Int, fatLimit: Int, proteinLimit: Int) {
+
+    fun updateGoals(
+        caloriesLimit: Int,
+        carbsLimit: Int,
+        fatLimit: Int,
+        proteinLimit: Int
+    ) {
         viewModelScope.launch {
             val newGoals = DailyGoals(
                 id = 1,
-                caloriesLimit = caloriesLimit,
-                carbsLimit = carbsLimit,
-                fatLimit = fatLimit,
-                proteinLimit = proteinLimit
+                caloriesLimit = caloriesLimit.coerceAtLeast(0),
+                carbsLimit = carbsLimit.coerceAtLeast(0),
+                fatLimit = fatLimit.coerceAtLeast(0),
+                proteinLimit = proteinLimit.coerceAtLeast(0),
+                isInitialized = true
             )
             repository.updateDailyGoals(newGoals)
         }

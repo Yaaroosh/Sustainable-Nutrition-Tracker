@@ -54,6 +54,8 @@ interface MealDao {
 """)
     fun searchMeals(query: String): Flow<List<Meal>>
 
+    @Query("SELECT * FROM meals ORDER BY rating ASC, date DESC")
+    fun getAllMealsByWorstRating(): Flow<List<Meal>>
 
 
 
