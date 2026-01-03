@@ -44,6 +44,8 @@ fun AppNavigation() {
 
     val mealRepo = DatabaseProvider.provideRepository(context)
     val todayRepo = DatabaseProvider.provideTodayRepository(context)
+    val sustainabilityRepo = DatabaseProvider.provideSustainabilityRepository(context)
+
 
     // Meal templates / browsing list
     val mealListVM: MealListViewModel =
@@ -59,8 +61,7 @@ fun AppNavigation() {
 
     // Consumed meals (today_meals) + per-day navigation
     val todayVM: TodayViewModel =
-        viewModel(factory = TodayViewModelFactory(todayRepo, mealRepo))
-
+        viewModel(factory = TodayViewModelFactory(todayRepo, mealRepo, sustainabilityRepo))
     // --- gram dialog state (picker flow) ---
     var pendingMeal by remember { mutableStateOf<Meal?>(null) }
     var pendingType by remember { mutableStateOf("breakfast") }
