@@ -26,6 +26,8 @@ import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModelFactory
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.MealViewModelFactory
+import com.example.sustainablenutritiontracker.ui.environmental.EnvironmentalImpactScreen
+
 
 private const val HOME = "home"
 private const val LIST = "list"
@@ -34,7 +36,7 @@ private const val EDIT = "editMeal"
 private const val TODAY = "today"
 private const val PICK = "pickMeal"
 private const val SET_GOALS = "setGoals"
-
+private const val ENVIRONMENTAL = "environmental"
 @Composable
 fun AppNavigation() {
     val nav = rememberNavController()
@@ -105,7 +107,8 @@ fun AppNavigation() {
                 onNavigateToList = { nav.navigate(LIST) },
                 onNavigateToAdd = { nav.navigate(ADD) },
                 onNavigateToSetGoals = { nav.navigate(SET_GOALS) },
-                onNavigateToToday = { nav.navigate(TODAY) }
+                onNavigateToToday = { nav.navigate(TODAY) },
+                onNavigateToEnvironmental = { nav.navigate(ENVIRONMENTAL) }
             )
         }
 
@@ -150,6 +153,13 @@ fun AppNavigation() {
                 onPickMeal = { type: String ->
                     nav.navigate("$PICK/$type")
                 }
+            )
+        }
+
+        composable(ENVIRONMENTAL) {
+            EnvironmentalImpactScreen(
+                todayViewModel = todayVM,
+                onBack = { nav.popBackStack() }
             )
         }
 

@@ -80,4 +80,19 @@ data class Meal(
             "Makronährstoffe sind zu niedrig im Verhältnis zu den Kalorien (unplausibel)."
         }
     }
+    fun getCO2Impact(): Double {
+        return when {
+            isVegan -> 0.7        // 700g CO2 per vegan meal
+            vegetarian -> 0.85    // 850g CO2 per vegetarian meal
+            else -> 1.4           // 1400g CO2 per meal with meat
+        }
+    }
+
+    fun getDietTypeLabel(): String {
+        return when {
+            isVegan -> "vegan"
+            vegetarian -> "vegetarian"
+            else -> "regular"
+        }
+    }
 }
