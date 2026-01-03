@@ -116,6 +116,38 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val streak by todayViewModel.streak.collectAsState()
+
+            Text(
+                text = "Current sustainability streak: $streak days"
+            )
+            //TEST BLOCK>>>
+            Row(
+                modifier = contentWidth,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { todayViewModel.debugSeedStreak(days = 3) },
+                    modifier = Modifier.weight(1f)
+                ) { Text("Seed 3-day streak") }
+
+                OutlinedButton(
+                    onClick = { todayViewModel.debugBreakYesterday() },
+                    modifier = Modifier.weight(1f)
+                ) { Text("Break yesterday") }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = { todayViewModel.debugClearStreakData() },
+                modifier = contentWidth
+            ) {
+                Text("Clear streak data")
+            }//<<<<TEST BLOCK
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Big calories circle
             Box(
                 modifier = contentWidth,
