@@ -7,72 +7,69 @@ import androidx.lifecycle.viewModelScope
 import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.data.model.NutritionTotals
 import com.example.sustainablenutritiontracker.data.repository.MealRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import com.example.sustainablenutritiontracker.ui.components.FilterType
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import com.example.sustainablenutritiontracker.data.model.toLocalDate
-
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 @RequiresApi(Build.VERSION_CODES.O)
 class MealViewModel(private val repository: MealRepository) : ViewModel() {
 
-    // StateFlow for meals list
     private val _meals = MutableStateFlow<List<Meal>>(emptyList())
     val meals: StateFlow<List<Meal>> = _meals.asStateFlow()
 
-
-
-    // search query state
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    //filter state
     private val _filterType = MutableStateFlow(FilterType.ALL)
     val filterType: StateFlow<FilterType> = _filterType.asStateFlow()
 
-    // Current sort type
     private val _sortType = MutableStateFlow(SortType.DATE)
     val sortType: StateFlow<SortType> = _sortType.asStateFlow()
 
+    private val _selectedDay = MutableStateFlow(LocalDate.now())
+    val selectedDay: StateFlow<LocalDate> = _selectedDay.asStateFlow()
 
-    // --- Daily nutrition totals (only today's meals) ---
     val nutritionTotals: StateFlow<NutritionTotals> =
-        repository.getDailyNutritionTotals()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = NutritionTotals(0, 0, 0, 0)
+        combine(repository.getMeals(), _selectedDay) { meals, day ->
+            val todaysMeals = meals.filter { it.date.toLocalDate() == day }
+            NutritionTotals(
+                calories = todaysMeals.sumOf { it.calories },
+                protein = todaysMeals.sumOf { it.protein },
+                carbs = todaysMeals.sumOf { it.carbs },
+                fat = todaysMeals.sumOf { it.fat }
             )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = NutritionTotals(0, 0, 0, 0)
+        )
 
     init {
-        observeMeals()      // ADDED — replaces loadMeals() as primary flow collector
+        observeMeals()
     }
 
-    // ADDED — observe database changes + apply SORT + SEARCH + FILTER together
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun observeMeals() {
         viewModelScope.launch {
             combine(
-                repository.getMeals(),   // DB flow
+                repository.getMeals(),
+                _selectedDay,
                 _sortType,
                 _searchQuery,
                 _filterType
-            ) { meals, sort, query, filter ->
+            ) { meals, day, sort, query, filter ->
 
+                // 0) DAY FILTER
+                val dayMeals = meals.filter { it.date.toLocalDate() == day }
 
-
-                // 1) SORTING
-
-                val todayMeals = meals.filter { it.date.toLocalDate() == java.time.LocalDate.now() }
+                // 1) SORTING (unabhängig von FilterType!)
                 val sorted = when (sort) {
-                    SortType.DATE -> todayMeals.sortedByDescending { it.date }
-                    SortType.RATING -> todayMeals.sortedByDescending { it.rating }
-                    SortType.TYPE -> todayMeals.sortedBy { it.mealType }
-                    SortType.CALORIES -> todayMeals.sortedByDescending { it.calories }
+                    SortType.DATE -> dayMeals.sortedByDescending { it.date }
+                    SortType.RATING -> dayMeals.sortedByDescending { it.rating }
+                    SortType.TYPE -> dayMeals.sortedBy { it.mealType }
+                    SortType.CALORIES -> dayMeals.sortedByDescending { it.calories }
                 }
 
                 // 2) SEARCH
@@ -85,69 +82,88 @@ class MealViewModel(private val repository: MealRepository) : ViewModel() {
                     }
                 }
 
-                // FILTER
-                val filtered = searched.filter { meal ->
+                // 3) FILTER (exhaustiv, inkl. neue Werte)
+                searched.filter { meal ->
                     when (filter) {
                         FilterType.ALL -> true
-                        FilterType.VEGETARIAN -> !meal.containsMeat
+
+                        // MealTypes
+                        FilterType.BREAKFAST -> meal.mealType == "breakfast"
+                        FilterType.LUNCH -> meal.mealType == "lunch"
+                        FilterType.DINNER -> meal.mealType == "dinner"
+                        FilterType.SNACK -> meal.mealType == "snack"
+
+                        // Diet
+                        FilterType.VEGETARIAN -> meal.vegetarian && !meal.containsMeat
                         FilterType.VEGAN -> meal.isVegan
                         FilterType.MEAT -> meal.containsMeat
+
+                        // Existing
                         FilterType.LOW_CALORIES -> meal.calories < 500
                         FilterType.HIGH_PROTEIN -> meal.protein >= 20
+
+                        // Sort-only FilterTypes (für MealListViewModel gedacht)
+                        FilterType.BEST_RATING,
+                        FilterType.WORST_RATING -> true
                     }
                 }
-
-                filtered
             }.collect { finalList ->
                 _meals.value = finalList
             }
         }
     }
 
-    // ADDED — called from SearchBar UI
     fun updateSearchQuery(newQuery: String) {
         _searchQuery.value = newQuery
     }
 
-    // ADDED — called from Filter UI
     fun updateFilter(newFilter: FilterType) {
         _filterType.value = newFilter
     }
 
-    // Load meals based on current sort type
     fun loadMeals(sort: SortType = _sortType.value) {
         _sortType.value = sort
     }
 
-    // Add a new meal
+    fun setSelectedDay(day: LocalDate) {
+        _selectedDay.value = day
+    }
+
+    fun previousDay() {
+        _selectedDay.value = _selectedDay.value.minusDays(1)
+    }
+
+    fun nextDay() {
+        _selectedDay.value = _selectedDay.value.plusDays(1)
+    }
+
     fun addMeal(meal: Meal) {
         viewModelScope.launch {
-            repository.insertMeal(meal)
+            repository.insertMeal(meal.copy(date = _selectedDay.value.toEpochMillis()))
         }
     }
 
-    // Delete a meal
     fun deleteMeal(meal: Meal) {
-        viewModelScope.launch {
-            repository.deleteMeal(meal)
-        }
+        viewModelScope.launch { repository.deleteMeal(meal) }
     }
 
-    // Delete all meals
     fun deleteAllMeals() {
-        viewModelScope.launch {
-            repository.deleteAllMeals()
-        }
+        viewModelScope.launch { repository.deleteAllMeals() }
     }
 
     fun editMeal(meal: Meal) {
-        viewModelScope.launch {
-            repository.updateMeal(meal)
-        }
+        viewModelScope.launch { repository.updateMeal(meal) }
     }
 
-    // Enum for sort types
     enum class SortType {
         DATE, RATING, TYPE, CALORIES
     }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun Long.toLocalDate(): LocalDate =
+    Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()).toLocalDate()
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun LocalDate.toEpochMillis(): Long =
+    this.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()

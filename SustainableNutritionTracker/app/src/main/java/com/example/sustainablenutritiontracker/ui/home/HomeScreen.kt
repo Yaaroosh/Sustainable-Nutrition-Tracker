@@ -1,8 +1,12 @@
 package com.example.sustainablenutritiontracker.ui.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FitnessCenter
@@ -11,34 +15,52 @@ import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.sustainablenutritiontracker.ui.today.TodayViewModel
+import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModel
 
-// 🎨 Violet palette
 private val VioletPrimary = Color(0xFF7C4DFF)
 private val VioletCalories = Color(0xFFB388FF)
 private val VioletCarbs = Color(0xFF9575CD)
 private val VioletProtein = Color(0xFF5E35B1)
 
-@OptIn(ExperimentalMaterial3Api::class) @Composable fun HomeScreen( onNavigateToList: () -> Unit, onNavigateToAdd: () -> Unit ) {
-    val caloriesTaken = 1200
-    val caloriesLimit = 2000
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(
+    dailyGoalViewModel: DailyGoalViewModel,
+    todayViewModel: TodayViewModel,
+    onNavigateToList: () -> Unit,
+    onNavigateToAdd: () -> Unit,
+    onNavigateToSetGoals: () -> Unit,
+    onNavigateToToday: () -> Unit
+) {
+    val dailyGoals by dailyGoalViewModel.dailyGoals.collectAsState()
+    val totals by todayViewModel.totalsNow.collectAsState() // ✅ ALWAYS TODAY
 
-    val carbsTaken = 150
-    val carbsLimit = 250
+    val caloriesLimit = dailyGoals.caloriesLimit
+    val carbsLimit = dailyGoals.carbsLimit
+    val fatLimit = dailyGoals.fatLimit
+    val proteinLimit = dailyGoals.proteinLimit
 
-    val fatTaken = 100
-    val fatLimit = 150
+    val caloriesTaken = totals.calories
+    val carbsTaken = totals.carbs
+    val fatTaken = totals.fat
+    val proteinTaken = totals.protein
 
-    val proteinTaken = 90
-    val proteinLimit = 13
+    val contentWidth = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -64,44 +86,39 @@ private val VioletProtein = Color(0xFF5E35B1)
             }
         }
     ) { padding ->
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.White,
                             Color(0xFFEDE7F6),
                             Color(0xFFF3E5F5),
-
-
                         )
                     )
                 )
                 .padding(padding)
-                .padding(16.dp)
+                .padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-
-        Spacer(modifier = Modifier.height(8.dp))
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ){
+            // Header
             Text(
-                text = "Today's Intake",
-                fontSize = 26.sp,
+                text = "Daily Overview",
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = VioletPrimary
+                color = VioletPrimary,
+                modifier = contentWidth
+                    .wrapContentWidth(Alignment.CenterHorizontally)
+            )
 
-            )}
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-
+            // Big calories circle
             Box(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = contentWidth,
                 contentAlignment = Alignment.Center
             ) {
                 MacroCircle(
@@ -110,25 +127,21 @@ private val VioletProtein = Color(0xFF5E35B1)
                     limit = caloriesLimit,
                     color = VioletCalories,
                     icon = Icons.Default.Restaurant,
-
-
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 🔵🟣🟪 Macro circles
+            // Macro circles row
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = contentWidth,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-
-
                 MacroCircle(
                     label = "Carbs",
                     current = carbsTaken,
                     limit = carbsLimit,
-                    color = VioletProtein,
+                    color = VioletCarbs,
                     icon = Icons.Default.LocalFireDepartment
                 )
 
@@ -149,52 +162,83 @@ private val VioletProtein = Color(0xFF5E35B1)
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(26.dp))
 
-            MacroDetailRow(
-                title = "Calories",
-                current = caloriesTaken,
-                limit = caloriesLimit,
-                color = VioletProtein,
-                icon = Icons.Default.Restaurant
-            )
+            // Detail rows (values)
+            Column(modifier = contentWidth) {
+                MacroDetailRow(
+                    title = "Calories",
+                    current = caloriesTaken,
+                    limit = caloriesLimit,
+                    color = VioletCalories,
+                    icon = Icons.Default.Restaurant
+                )
+                MacroDetailRow(
+                    title = "Carbs",
+                    current = carbsTaken,
+                    limit = carbsLimit,
+                    color = VioletCarbs,
+                    icon = Icons.Default.LocalFireDepartment
+                )
+                MacroDetailRow(
+                    title = "Fat",
+                    current = fatTaken,
+                    limit = fatLimit,
+                    color = VioletProtein,
+                    icon = Icons.Default.Opacity
+                )
+                MacroDetailRow(
+                    title = "Protein",
+                    current = proteinTaken,
+                    limit = proteinLimit,
+                    color = VioletProtein,
+                    icon = Icons.Default.FitnessCenter
+                )
+            }
 
-            MacroDetailRow(
-                title = "Carbs",
-                current = carbsTaken,
-                limit = carbsLimit,
-                color = VioletProtein,
-                icon = Icons.Default.LocalFireDepartment
-            )
-
-            MacroDetailRow(
-                title = "Fat",
-                current = fatTaken,
-                limit = fatLimit,
-                color = VioletProtein,
-                icon = Icons.Default.Opacity
-            )
-
-            MacroDetailRow(
-                title = "Protein",
-                current = proteinTaken,
-                limit = proteinLimit,
-                color = VioletProtein,
-                icon = Icons.Default.FitnessCenter
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
 
             OutlinedButton(
-                onClick = onNavigateToList,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+                onClick = onNavigateToToday,
+                modifier = contentWidth.height(52.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = VioletCalories),
-                border = BorderStroke(3.dp, VioletCalories)
+                    contentColor = VioletCarbs
+                ),
+                border = BorderStroke(2.dp, VioletCarbs)
             ) {
-                Text("View Meal List")
+                Text("Go to Today", fontWeight = FontWeight.SemiBold)
             }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Set Daily Goals full width like content
+            OutlinedButton(
+                onClick = onNavigateToSetGoals,
+                modifier = contentWidth.height(52.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = VioletPrimary
+                ),
+                border = BorderStroke(2.dp, VioletPrimary)
+            ) {
+                Text("Set Daily Goals", fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // View Meal List full width like content
+            OutlinedButton(
+                onClick = onNavigateToList,
+                modifier = contentWidth.height(52.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = VioletCalories
+                ),
+                border = BorderStroke(2.dp, VioletCalories)
+            ) {
+                Text("View Meal List", fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
@@ -207,13 +251,11 @@ fun MacroCircle(
     color: Color,
     icon: ImageVector
 ) {
-    val progress = current.toFloat() / limit.toFloat()
+    val safeLimit = if (limit <= 0) 1 else limit
+    val progress = current.toFloat() / safeLimit.toFloat()
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-        ) {
+        Box(contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 progress = { progress.coerceIn(0f, 1f) },
                 modifier = Modifier.size(92.dp),
@@ -231,7 +273,6 @@ fun MacroCircle(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(label, fontWeight = FontWeight.Medium, color = color)
     }
 }
@@ -244,6 +285,8 @@ fun MacroDetailRow(
     color: Color,
     icon: ImageVector
 ) {
+    val safeLimit = if (limit <= 0) 1 else limit
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -256,7 +299,6 @@ fun MacroDetailRow(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Icon(
                 imageVector = icon,
                 contentDescription = title,
@@ -274,19 +316,10 @@ fun MacroDetailRow(
             )
 
             Text(
-                text = "$current / $limit",
+                text = "$current / $safeLimit",
                 fontWeight = FontWeight.SemiBold,
                 color = color
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(
-        onNavigateToList = {},
-        onNavigateToAdd = {}
-    )
 }
