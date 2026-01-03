@@ -85,6 +85,7 @@ class TodayViewModel(
         }
 
         _totalCO2Saved.value = totalCO2
+    }
     // TODO(issue-58): replace with real environment score
     private val _environmentScore = MutableStateFlow(0)
     val environmentScore: StateFlow<Int> = _environmentScore.asStateFlow()
