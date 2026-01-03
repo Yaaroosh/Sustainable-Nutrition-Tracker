@@ -36,6 +36,9 @@ fun TodayScreen(
     val items by viewModel.todayMeals.collectAsState()
     val totals by viewModel.totals.collectAsState()
 
+    // NEU: CO2 Popup State
+    val co2PopupData by viewModel.showCO2Popup.collectAsState()
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -71,7 +74,6 @@ fun TodayScreen(
             contentPadding = PaddingValues(bottom = 20.dp)
         ) {
 
-            // ✅ Uses TodayInlineSummary wrapper which uses InlineSummary underneath
             item {
                 TodayInlineSummary(
                     calories = totals.calories,
@@ -103,6 +105,14 @@ fun TodayScreen(
 
             item { Spacer(Modifier.height(6.dp)) }
         }
+    }
+
+    // NEU: CO2 Impact Popup
+    co2PopupData?.let { data ->
+        com.example.sustainablenutritiontracker.ui.environmental.CO2ImpactPopup(
+            data = data,
+            onDismiss = { viewModel.dismissCO2Popup() }
+        )
     }
 }
 

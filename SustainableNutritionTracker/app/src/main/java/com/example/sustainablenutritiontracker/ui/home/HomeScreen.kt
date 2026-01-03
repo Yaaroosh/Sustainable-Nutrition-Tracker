@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Restaurant
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.sustainablenutritiontracker.ui.today.TodayViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModel
 
+
 private val VioletPrimary = Color(0xFF7C4DFF)
 private val VioletCalories = Color(0xFFB388FF)
 private val VioletCarbs = Color(0xFF9575CD)
@@ -42,7 +44,8 @@ fun HomeScreen(
     onNavigateToList: () -> Unit,
     onNavigateToAdd: () -> Unit,
     onNavigateToSetGoals: () -> Unit,
-    onNavigateToToday: () -> Unit
+    onNavigateToToday: () -> Unit,
+    onNavigateToEnvironmental: () -> Unit
 ) {
     val dailyGoals by dailyGoalViewModel.dailyGoals.collectAsState()
     val totals by todayViewModel.totalsNow.collectAsState() // ✅ ALWAYS TODAY
@@ -113,6 +116,38 @@ fun HomeScreen(
                 modifier = contentWidth
                     .wrapContentWidth(Alignment.CenterHorizontally)
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val streak by todayViewModel.streak.collectAsState()
+
+            Text(
+                text = "Current sustainability streak: $streak days"
+            )
+            //TEST BLOCK>>>
+            Row(
+                modifier = contentWidth,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { todayViewModel.debugSeedStreak(days = 3) },
+                    modifier = Modifier.weight(1f)
+                ) { Text("Seed 3-day streak") }
+
+                OutlinedButton(
+                    onClick = { todayViewModel.debugBreakYesterday() },
+                    modifier = Modifier.weight(1f)
+                ) { Text("Break yesterday") }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = { todayViewModel.debugClearStreakData() },
+                modifier = contentWidth
+            ) {
+                Text("Clear streak data")
+            }//<<<<TEST BLOCK
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -236,6 +271,21 @@ fun HomeScreen(
                 border = BorderStroke(2.dp, VioletCalories)
             ) {
                 Text("View Meal List", fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = onNavigateToEnvironmental,
+                modifier = contentWidth.height(52.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color(0xFF4CAF50)
+                ),
+                border = BorderStroke(2.dp, Color(0xFF4CAF50))
+            ) {
+                Icon(Icons.Default.Eco, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Environmental Impact", fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(modifier = Modifier.height(12.dp))

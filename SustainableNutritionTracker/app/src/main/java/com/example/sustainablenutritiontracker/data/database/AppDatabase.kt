@@ -7,10 +7,11 @@ import androidx.room.RoomDatabase
 import com.example.sustainablenutritiontracker.data.model.DailyGoals
 import com.example.sustainablenutritiontracker.data.model.Meal
 import com.example.sustainablenutritiontracker.data.model.TodayMealEntity
+import com.example.sustainablenutritiontracker.data.model.SustainableDayEntity
 
 @Database(
-    entities = [Meal::class, DailyGoals::class, TodayMealEntity::class],
-    version = 10,
+    entities = [Meal::class, DailyGoals::class, TodayMealEntity::class, SustainableDayEntity::class],
+    version = 11,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -18,6 +19,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun mealDao(): MealDao
     abstract fun dailyGoalsDao(): DailyGoalsDao
     abstract fun todayMealDao(): TodayMealDao
+
+    // ✅ NEW
+    abstract fun sustainableDayDao(): SustainableDayDao
 
     companion object {
         @Volatile
