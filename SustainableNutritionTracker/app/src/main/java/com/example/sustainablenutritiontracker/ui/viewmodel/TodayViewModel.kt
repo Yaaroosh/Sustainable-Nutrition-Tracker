@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+
 
 private const val SUSTAINABLE_THRESHOLD = 70
 private const val STREAK_LOOKBACK_DAYS = 60 // how many past days we consider when computing streak
@@ -63,32 +66,38 @@ class TodayViewModel(
         }
     }
 
-    private fun calculateTodaysCO2(mealsList: List<TodayMealEntity>) {
-        var totalCO2 = 0.0
-
-        mealsList.forEach { entity ->
+    private fun calculateCO2Impact(meals: List<TodayMealEntity>): Double {
+        return meals.sumOf { entity ->
             val co2Impact = when {
                 entity.isVegan -> 0.7
                 entity.vegetarian -> 0.85
                 else -> 1.4
             }
-
-            // NEU: Bei Meat zählt negativ, bei Vegan/Vegetarian positiv
             if (entity.containsMeat || (!entity.isVegan && !entity.vegetarian)) {
-                // Meat: subtrahiere absolute CO2 Menge
-                totalCO2 -= co2Impact
+                -co2Impact
             } else {
-                // Vegan/Vegetarian: addiere gesparte CO2 Menge
-                val regularBaseline = 1.4
-                totalCO2 += (regularBaseline - co2Impact)
+                1.4 - co2Impact
             }
         }
+    }
 
-        _totalCO2Saved.value = totalCO2
+    private fun calculateTodaysCO2(mealsList: List<TodayMealEntity>) {
+        _totalCO2Saved.value = calculateCO2Impact(mealsList)
     }
     // TODO(issue-58): replace with real environment score
     private val _environmentScore = MutableStateFlow(0)
     val environmentScore: StateFlow<Int> = _environmentScore.asStateFlow()
+
+    val last7DaysCO2: StateFlow<List<Double>> = combine(
+        (0..6).map { offset ->
+            val targetDate = LocalDate.now().minusDays(offset.toLong()).toString()
+            todayRepo.mealsForDate(targetDate).map { meals ->
+                calculateCO2Impact(meals)
+            }
+        }
+    ) { dailyValues ->
+        dailyValues.toList()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val isTodaySustainable: StateFlow<Boolean> =
         environmentScore
