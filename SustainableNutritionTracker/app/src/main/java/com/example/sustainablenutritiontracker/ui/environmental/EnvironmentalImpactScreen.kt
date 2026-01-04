@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.sp
 import com.example.sustainablenutritiontracker.ui.today.TodayViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.CO2PopupData
 import kotlin.math.abs
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.style.TextAlign
 
 private val VioletPrimary = Color(0xFF7C4DFF)
 private val GreenSuccess = Color(0xFF4CAF50)
@@ -148,6 +151,120 @@ fun EnvironmentalImpactScreen(
                     )
                 }
             }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+            val co2History by todayViewModel.last7DaysCO2.collectAsState()
+
+            val chartData = co2History.mapIndexed { index, value ->
+                val date = java.time.LocalDate.now().minusDays(index.toLong())
+                val dayLabel = date.dayOfWeek.name.take(1)
+                dayLabel to value
+            }.reversed()
+
+            @Composable
+            fun CO2Last7DaysChart(
+                dailyValues: List<Pair<String, Double>>,
+                modifier: Modifier = Modifier
+            ) {
+                val maxValue = (dailyValues.maxOfOrNull { kotlin.math.abs(it.second) } ?: 1.0).coerceAtLeast(1.0)
+                val scaleValues = listOf(
+                    String.format("%.1f", maxValue),
+                    String.format("%.1f", maxValue / 2),
+                    "0.0"
+                )
+
+                Column(modifier = modifier) {
+                    Text(
+                        text = "Last 7 Days CO₂ Impact (kg)",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = VioletPrimary,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .padding(bottom = 24.dp, end = 8.dp),
+                            verticalArrangement = Arrangement.SpaceBetween,
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            scaleValues.forEach { scale ->
+                                Text(text = scale, fontSize = 10.sp, color = Color.Gray)
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            dailyValues.forEach { (dayLabel, value) ->
+                                val proportion = (kotlin.math.abs(value) / maxValue).toFloat().coerceIn(0.02f, 1.0f)
+
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                ) {
+                                    Text(
+                                        text = String.format("%.1f", value),
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (value >= 0) GreenSuccess else RedError
+                                    )
+
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f, fill = true)
+                                            .fillMaxWidth(),
+                                        contentAlignment = Alignment.BottomCenter
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(22.dp)
+                                                .fillMaxHeight(proportion)
+                                                .background(
+                                                    color = if (value >= 0) GreenSuccess else RedError,
+                                                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+                                                )
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    Text(
+                                        text = dayLabel,
+                                        fontSize = 12.sp,
+                                        color = if (dayLabel == java.time.LocalDate.now().dayOfWeek.name.take(1))
+                                            VioletPrimary else Color.Gray,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            CO2Last7DaysChart(
+                dailyValues = chartData,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+            )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
