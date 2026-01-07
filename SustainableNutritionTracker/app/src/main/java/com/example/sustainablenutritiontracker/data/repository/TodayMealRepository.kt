@@ -34,3 +34,24 @@ class TodayMealRepository(
             TodayTotals(cals, carbs, fat, protein)
         }
 }
+
+// change
+data class EnvironmentScore(
+    val percentage: Int = 0,
+    val veganCount: Int = 0,
+    val vegetarianCount: Int = 0,
+    val totalMeals: Int = 0
+)
+
+fun environmentScore(date: String): Flow<EnvironmentScore> =
+    mealsForDate(date).map { meals ->
+        if (meals.isEmpty()) {
+            EnvironmentScore(0)
+        } else {
+            val veganOrVegCount = meals.count { 
+                it.isVegan || it.vegetarian 
+            }
+            val percentage = (veganOrVegCount.toFloat() / meals.size * 100).toInt()
+            EnvironmentScore(percentage, veganOrVegCount, meals.size - veganOrVegCount, meals.size)
+        }
+    }
