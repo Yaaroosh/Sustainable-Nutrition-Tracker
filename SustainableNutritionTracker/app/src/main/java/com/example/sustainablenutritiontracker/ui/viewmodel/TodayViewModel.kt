@@ -275,3 +275,17 @@ class TodayViewModel(
         _showCO2Popup.value = null
     }
 }
+
+// change
+private val _environmentScore = MutableStateFlow(EnvironmentScore())
+val environmentScore: StateFlow<EnvironmentScore> = _environmentScore.asStateFlow()
+
+init {
+    // Add to your existing init block
+    viewModelScope.launch {
+        todayMealRepository.environmentScore(getTodayDate()).collect { score ->
+            _environmentScore.value = score
+        }
+    }
+}
+
