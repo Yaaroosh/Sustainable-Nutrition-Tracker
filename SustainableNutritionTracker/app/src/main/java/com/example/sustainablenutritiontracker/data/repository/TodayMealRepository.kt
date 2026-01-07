@@ -4,12 +4,20 @@ import com.example.sustainablenutritiontracker.data.database.TodayMealDao
 import com.example.sustainablenutritiontracker.data.model.TodayMealEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map  // ← FEHLT!
 
 data class TodayTotals(
     val calories: Int = 0,
     val carbs: Int = 0,
     val fat: Int = 0,
     val protein: Int = 0
+)
+
+data class EnvironmentScore(
+    val percentage: Int = 0,
+    val veganCount: Int = 0,
+    val vegetarianCount: Int = 0,
+    val totalMeals: Int = 0
 )
 
 class TodayMealRepository(
@@ -33,25 +41,22 @@ class TodayMealRepository(
         ) { cals, carbs, fat, protein ->
             TodayTotals(cals, carbs, fat, protein)
         }
-}
 
-// change
-data class EnvironmentScore(
-    val percentage: Int = 0,
-    val veganCount: Int = 0,
-    val vegetarianCount: Int = 0,
-    val totalMeals: Int = 0
-)
-
-fun environmentScore(date: String): Flow<EnvironmentScore> =
-    mealsForDate(date).map { meals ->
-        if (meals.isEmpty()) {
-            EnvironmentScore(0)
-        } else {
-            val veganOrVegCount = meals.count { 
-                it.isVegan || it.vegetarian 
+    fun environmentScore(date: String): Flow<EnvironmentScore> =
+        mealsForDate(date).map { meals: List<TodayMealEntity> ->  // ← TYPE HINZUFÜGEN
+            if (meals.isEmpty()) {
+                EnvironmentScore(0)
+            } else {
+                val veganOrVegCount = meals.count { 
+                    it.isVegan || it.vegetarian 
+                }
+                val percentage = (veganOrVegCount.toFloat() / meals.size * 100).toInt()
+                EnvironmentScore(
+                    percentage = percentage,
+                    veganCount = veganOrVegCount,
+                    vegetarianCount = meals.size - veganOrVegCount,
+                    totalMeals = meals.size
+                )
             }
-            val percentage = (veganOrVegCount.toFloat() / meals.size * 100).toInt()
-            EnvironmentScore(percentage, veganOrVegCount, meals.size - veganOrVegCount, meals.size)
         }
-    }
+}
