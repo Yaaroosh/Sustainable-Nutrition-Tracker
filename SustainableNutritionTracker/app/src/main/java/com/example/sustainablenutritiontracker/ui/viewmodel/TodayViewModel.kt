@@ -81,36 +81,39 @@ class TodayViewModel(
     val streak: StateFlow<Int> = _streak.asStateFlow()
 
     init {
-        observeTodaysCO2()
-        
-        // 🟢 NEU: Environment Score Observer
-        viewModelScope.launch {
-            todayMealsNow.collect { meals ->
-                val veganOrVegCount = meals.count { it.isVegan || it.vegetarian }
-                val percentage = if (meals.isEmpty()) 0 else (veganOrVegCount * 100 / meals.size)
-                _environmentScore.value = EnvironmentScore(
-                    percentage = percentage,
-                    veganCount = veganOrVegCount,
-                    totalMeals = meals.size
-                )
-            }
-        }
-
-        // Streak Observer (bestehender Code)
-        viewModelScope.launch {
-            sustainabilityRepo.lastDays(today = todayKey, limit = STREAK_LOOKBACK_DAYS)
-                .collect { days ->
-                    _streak.value = computeConsecutiveStreak(days)
-                }
-        }
-
-        // Persist Sustainability (bestehender Code)
-        viewModelScope.launch {
-            environmentScore.collect { score ->
-                persistTodaySustainability(score.percentage)
-            }
+    // 1. CO2 Observer
+    observeTodaysCO2()
+    
+    // 2. ENVIRONMENT SCORE - WICHTIGSTE FIX!
+    viewModelScope.launch {
+        todayMealsNow.collect { meals ->
+            val veganOrVegCount = meals.count { it.isVegan || it.vegetarian }
+            val percentage = if (meals.isEmpty()) 0 else (veganOrVegCount * 100f / meals.size).toInt()
+            
+            _environmentScore.value = EnvironmentScore(
+                percentage = percentage,
+                veganCount = veganOrVegCount,
+                totalMeals = meals.size
+            )
         }
     }
+    
+    // 3. Streak Observer
+    viewModelScope.launch {
+        sustainabilityRepo.lastDays(today = todayKey, limit = STREAK_LOOKBACK_DAYS)
+            .collect { days ->
+                _streak.value = computeConsecutiveStreak(days)
+            }
+    }
+    
+    // 4. Persist Sustainability
+    viewModelScope.launch {
+        environmentScore.collect { score ->
+            persistTodaySustainability(score.percentage)
+        }
+    }
+}
+
 
     private fun observeTodaysCO2() {
         viewModelScope.launch {
