@@ -38,6 +38,71 @@ private val VioletProtein = Color(0xFF5E35B1)
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
+//change
+fun EnvironmentScoreBar(
+    score: EnvironmentScore,
+    modifier: Modifier = Modifier
+) {
+    val percentage = score.percentage.coerceIn(0, 100)
+    
+    // Dynamic feedback based on score
+    val feedbackText = when {
+        percentage == 0 -> "No meals yet today"
+        percentage < 25 -> "Your environment score is low. Try more plant-based meals!"
+        percentage < 50 -> "Improving! Add more vegan/vegetarian options."
+        percentage < 75 -> "Good job! You're eating sustainably."
+        percentage < 100 -> "Almost perfect! One more plant-based meal!"
+        else -> "Perfect score! Keep up the great work! 🌱"
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.padding(16.dp)
+    ) {
+        // Score percentage
+        Text(
+            text = "${percentage}%",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF7C4DFF)
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Progress bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .height(20.dp)
+                .background(
+                    Color.Gray.copy(alpha = 0.3f),
+                    RoundedCornerShape(10.dp)
+                )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(percentage / 100f)
+                    .fillMaxHeight()
+                    .background(
+                        Color(0xFF7C4DFF), // Violet
+                        RoundedCornerShape(10.dp)
+                    )
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // Feedback text
+        Text(
+            text = feedbackText,
+            fontSize = 14.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 fun HomeScreen(
     dailyGoalViewModel: DailyGoalViewModel,
     todayViewModel: TodayViewModel,
