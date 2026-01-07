@@ -1,5 +1,6 @@
 package com.example.sustainablenutritiontracker.data.model
 
+import android.util.Log
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -22,64 +23,29 @@ data class Meal(
 ) {
 
     init {
-
-        // DEBUG LOGGING - ADD THIS AT THE VERY TOP OF init { }
-        android.util.Log.d(
-            "MealDebug",
-            "Meal created -> calories=$calories, carbs=$carbs, fat=$fat, protein=$protein, macroCalories=${carbs*4 + protein*4 + fat*9}"
+        // DEBUG LOGGING
+        val macroCalories = carbs * 4 + protein * 4 + fat * 9
+        Log.d(
+            "MealDebug", 
+            "Meal: $title | cal=$calories | macro=$macroCalories | vegan=${if(isVegan)"✓" else "✗"}"
         )
 
-        // --- Basisvalidierung ---
-        require(title.isNotBlank()) {
-            "Titel darf nicht leer sein."
-        }
-
+        // ⚠️ MINIMAL VALIDATION - KEINE CRASHES!
+        require(title.isNotBlank()) { "Titel darf nicht leer sein." }
+        
         val allowedMealTypes = listOf("breakfast", "lunch", "dinner", "snack")
-        require(mealType in allowedMealTypes) {
-            "Ungültiger Meal-Typ. Erlaubt: $allowedMealTypes"
-        }
+        require(mealType in allowedMealTypes) { "Ungültiger Meal-Typ: $allowedMealTypes" }
+        
+        require(calories > 0) { "Kalorien müssen > 0 sein." }
+        require(carbs >= 0 && fat >= 0 && protein >= 0) { "Makros >= 0" }
+        require(rating in 0..5) { "Rating 0-5" }
 
-        require(calories > 0) {
-            "Kalorien müssen > 0 sein."
-        }
-
-        require(carbs >= 0) { "Carbs dürfen nicht negativ sein." }
-        require(fat >= 0) { "Fat darf nicht negativ sein." }
-        require(protein >= 0) { "Protein darf nicht negativ sein." }
-
-        // --- Rating ---
-        require(rating in 0..5) {
-            "Rating muss zwischen 0 und 5 liegen."
-        }
-
-        // realistische Grenzen für Nährwerte
-        require(calories <= 10000) {
-            "Kalorienwert ist unrealistisch hoch (>10.000)."
-        }
-
-        require(carbs <= 1000) {
-            "Carbs sind unrealistisch hoch (>1000 g)."
-        }
-
-        require(fat <= 500) {
-            "Fat ist unrealistisch hoch (>500 g)."
-        }
-
-        require(protein <= 500) {
-            "Protein ist unrealistisch hoch (>500 g)."
-        }
-
-        // --- Konsistenzprüfung ---
-        val macroCalories = carbs * 4 + protein * 4 + fat * 9
-
-        require(macroCalories <= calories * 1.5) {
-            "Makronährstoffe sind unverhältnismäßig zu den Kalorien (zu viele Makro-Kalorien)."
-        }
-
-        require(macroCalories >= calories * 0.3) {
-            "Makronährstoffe sind zu niedrig im Verhältnis zu den Kalorien (unplausibel)."
-        }
+        // ✅ WARNUNGEN statt CRASH (realistisch für Nutrition Tracker)
+        if (calories > 5000) Log.w("Meal", "Hohe Kalorien: $calories")
+        if (macroCalories > calories * 2) Log.w("Meal", "Makro-Kalorien höher als Gesamt: $macroCalories > ${calories}")
+        if (macroCalories < calories * 0.1) Log.w("Meal", "Makro-Kalorien zu niedrig")
     }
+
     fun getCO2Impact(): Double {
         return when {
             isVegan -> 0.7        // 700g CO2 per vegan meal
