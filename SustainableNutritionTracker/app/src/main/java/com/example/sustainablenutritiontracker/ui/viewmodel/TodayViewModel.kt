@@ -50,9 +50,13 @@ class TodayViewModel(
 
     private val todayKey: String get() = LocalDate.now().toString()
 
-    val todayMealsNow: StateFlow<List<TodayMealEntity>> =
-        todayRepo.mealsForDate(todayKey)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+val todayMealsNow: StateFlow<List<TodayMealEntity>> =
+    todayRepo.mealsForDate(todayKey)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     val totalsNow: StateFlow<TodayTotals> =
         todayRepo.totals(todayKey)
