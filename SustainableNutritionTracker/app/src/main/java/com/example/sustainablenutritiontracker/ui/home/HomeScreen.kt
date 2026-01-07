@@ -6,6 +6,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,11 +25,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sustainablenutritiontracker.ui.today.TodayViewModel
 import com.example.sustainablenutritiontracker.ui.viewmodel.DailyGoalViewModel
-
 
 private val VioletPrimary = Color(0xFF7C4DFF)
 private val VioletCalories = Color(0xFFB388FF)
@@ -38,71 +39,6 @@ private val VioletProtein = Color(0xFF5E35B1)
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
-//change
-fun EnvironmentScoreBar(
-    score: EnvironmentScore,
-    modifier: Modifier = Modifier
-) {
-    val percentage = score.percentage.coerceIn(0, 100)
-    
-    // Dynamic feedback based on score
-    val feedbackText = when {
-        percentage == 0 -> "No meals yet today"
-        percentage < 25 -> "Your environment score is low. Try more plant-based meals!"
-        percentage < 50 -> "Improving! Add more vegan/vegetarian options."
-        percentage < 75 -> "Good job! You're eating sustainably."
-        percentage < 100 -> "Almost perfect! One more plant-based meal!"
-        else -> "Perfect score! Keep up the great work! 🌱"
-    }
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.padding(16.dp)
-    ) {
-        // Score percentage
-        Text(
-            text = "${percentage}%",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF7C4DFF)
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Progress bar
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .height(20.dp)
-                .background(
-                    Color.Gray.copy(alpha = 0.3f),
-                    RoundedCornerShape(10.dp)
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(percentage / 100f)
-                    .fillMaxHeight()
-                    .background(
-                        Color(0xFF7C4DFF), // Violet
-                        RoundedCornerShape(10.dp)
-                    )
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // Feedback text
-        Text(
-            text = feedbackText,
-            fontSize = 14.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
 fun HomeScreen(
     dailyGoalViewModel: DailyGoalViewModel,
     todayViewModel: TodayViewModel,
@@ -113,7 +49,7 @@ fun HomeScreen(
     onNavigateToEnvironmental: () -> Unit
 ) {
     val dailyGoals by dailyGoalViewModel.dailyGoals.collectAsState()
-    val totals by todayViewModel.totalsNow.collectAsState() // ✅ ALWAYS TODAY
+    val totals by todayViewModel.totalsNow.collectAsState()
 
     val caloriesLimit = dailyGoals.caloriesLimit
     val carbsLimit = dailyGoals.carbsLimit
@@ -185,34 +121,14 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             val streak by todayViewModel.streak.collectAsState()
-
             Text(
                 text = "Current sustainability streak: $streak days"
             )
-            //TEST BLOCK>>>
-            Row(
-                modifier = contentWidth,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { todayViewModel.debugSeedStreak(days = 3) },
-                    modifier = Modifier.weight(1f)
-                ) { Text("Seed 3-day streak") }
 
-                OutlinedButton(
-                    onClick = { todayViewModel.debugBreakYesterday() },
-                    modifier = Modifier.weight(1f)
-                ) { Text("Break yesterday") }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedButton(
-                onClick = { todayViewModel.debugClearStreakData() },
-                modifier = contentWidth
-            ) {
-                Text("Clear streak data")
-            }//<<<<TEST BLOCK
+            // 🟢 ENVIRONMENT SCORE BAR - NEU
+            val environmentScore by todayViewModel.environmentScore.collectAsState()
+            EnvironmentScoreBar(percentage = environmentScore.percentage)
+            // 🟢 ENDE
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -298,7 +214,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
             OutlinedButton(
                 onClick = onNavigateToToday,
                 modifier = contentWidth.height(52.dp),
@@ -312,7 +227,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Set Daily Goals full width like content
             OutlinedButton(
                 onClick = onNavigateToSetGoals,
                 modifier = contentWidth.height(52.dp),
@@ -326,7 +240,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // View Meal List full width like content
             OutlinedButton(
                 onClick = onNavigateToList,
                 modifier = contentWidth.height(52.dp),
@@ -355,6 +268,66 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
         }
+    }
+}
+
+@Composable
+fun EnvironmentScoreBar(
+    percentage: Int,
+    modifier: Modifier = Modifier
+) {
+    val safePercentage = percentage.coerceIn(0, 100)
+    
+    val feedbackText = when {
+        safePercentage == 0 -> "No meals yet today"
+        safePercentage < 25 -> "Your environment score is low. Try more plant-based meals!"
+        safePercentage < 50 -> "Improving! Add more vegan/vegetarian options."
+        safePercentage < 75 -> "Good job! You're eating sustainably."
+        safePercentage < 100 -> "Almost perfect! One more plant-based meal!"
+        else -> "Perfect score! Keep up the great work! 🌱"
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.padding(16.dp)
+    ) {
+        Text(
+            text = "${safePercentage}%",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = VioletPrimary
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .height(20.dp)
+                .background(
+                    Color.Gray.copy(alpha = 0.3f),
+                    RoundedCornerShape(10.dp)
+                )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(safePercentage / 100f)
+                    .fillMaxHeight()
+                    .background(
+                        VioletPrimary,
+                        RoundedCornerShape(10.dp)
+                    )
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Text(
+            text = feedbackText,
+            fontSize = 14.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
