@@ -38,6 +38,7 @@ fun TodayInlineSummary(
                 value = "${fat} g",
                 color = VioletFat
             ),
+
             InlineSummaryItem(
                 label = "Protein",
                 value = "${protein} g",
